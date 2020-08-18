@@ -54,7 +54,7 @@ class SubmissionCreationTests(TestCase):
         self.url = reverse("api_competition_submission_post", kwargs={"competition_id": self.competition.pk})
 
         self.client.login(username="organizer", password="pass")
-        the_file = SimpleUploadedFile('best_file_eva.txt', 'these are the file contents!')
+        the_file = SimpleUploadedFile('best_file_eva.txt', 'these are the file contents!'.encode('utf-8'))
 
         self.data = {
             'name': the_file.name,

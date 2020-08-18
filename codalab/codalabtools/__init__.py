@@ -3,13 +3,12 @@ Package containing the CodaLab client tools.
 """
 
 import json
-import logging
 import multiprocessing
 import os
 import yaml
 import time
 
-from Queue import Empty
+from queue import Empty
 
 class BaseConfig(object):
     """

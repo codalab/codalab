@@ -98,7 +98,7 @@ class InfoApi(ScopedProtectedResourceView):
         if names is None or type(names) is not list or len(names) == 0:
             return {'code': 400}
         for name in names:
-            if type(name) not in (str, unicode) or len(name) < 1:
+            if type(name) != str or len(name) < 1:
                 return {'code': 400}
         try:
             users = ClUser.objects.filter(username__in=names)

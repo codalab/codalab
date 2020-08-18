@@ -5,7 +5,7 @@ import requests
 from textwrap import dedent
 from uuid import uuid4
 from os.path import exists, basename
-from utils import run_shell_script
+from .utils import run_shell_script
 
 
 def put_blob(url, file_path):

@@ -1,32 +1,31 @@
 import csv
 import datetime
-import exceptions
 import io
 import json
 import logging
+import lxml.html
+import math
 import operator
 import os
-import StringIO
 import re
-import urllib
+import urllib.error
+import urllib.parse
+import urllib.request
 import uuid
-from urllib import pathname2url
-
 import yaml
 import zipfile
-import math
-
-from os.path import split
-
+from apps.chahub.models import ChaHubSaveMixin
+from apps.coopetitions.models import DownloadRecord
+from apps.forums.models import Forum
+from apps.teams.models import Team, get_user_team, TeamMembership
+from apps.web.utils import PublicStorage, BundleStorage, clean_html_script, get_object_base_url
 from decimal import Decimal
 from django.conf import settings
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.core.files.storage import get_storage_class
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db import models
@@ -34,25 +33,18 @@ from django.db import transaction
 from django.db.models import Max
 from django.db.models.signals import post_save
 from django.utils.dateparse import parse_datetime
-from django.utils.timezone import now
-
-from mptt.models import MPTTModel, TreeForeignKey
-
-from pytz import utc
-from guardian.shortcuts import assign_perm
-from django_extensions.db.fields import UUIDField
+from django.utils.deconstruct import deconstructible
 from django.utils.functional import cached_property
+from django.utils.timezone import now
+from django_extensions.db.fields import UUIDField
+from functools import cmp_to_key
+from guardian.shortcuts import assign_perm
+from mptt.models import MPTTModel, TreeForeignKey
+from os.path import split
+from pytz import utc
 from s3direct.fields import S3DirectField
 
-from apps.chahub.models import ChaHubSaveMixin
-from apps.forums.models import Forum
-from apps.coopetitions.models import DownloadRecord
-from apps.authenz.models import ClUser
-from apps.web.exceptions import ScoringException
-from apps.web.utils import PublicStorage, BundleStorage, clean_html_script
-from apps.teams.models import Team, get_user_team, TeamMembershipStatus, TeamMembership
-
-import lxml.html
+from . import exceptions
 
 User = settings.AUTH_USER_MODEL
 logger = logging.getLogger(__name__)
@@ -77,6 +69,9 @@ class ContentVisibility(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
 
 class ContentCategory(MPTTModel):
     """
@@ -97,6 +92,9 @@ class ContentCategory(MPTTModel):
     content_limit = models.PositiveIntegerField(default=1)
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
 
@@ -123,6 +121,9 @@ class DefaultContentItem(models.Model):
     def __unicode__(self):
         return self.label
 
+    def __str__(self):
+        return self.label
+
 
 class PageContainer(models.Model):
     """
@@ -131,12 +132,15 @@ class PageContainer(models.Model):
     name = models.CharField(max_length=200, blank=True)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField(db_index=True)
-    owner = generic.GenericForeignKey('content_type', 'object_id')
+    owner = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
         unique_together = (('object_id', 'content_type'),)
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
@@ -155,6 +159,9 @@ class ExternalFileType(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
+
 
 # End External File Models
 class ExternalFileSource(models.Model):
@@ -166,6 +173,9 @@ class ExternalFileSource(models.Model):
     service_url = models.URLField(null=True, blank=True)
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
 
@@ -180,6 +190,9 @@ class ExternalFile(models.Model):
     source_address_info = models.CharField(max_length=200, blank=True)
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
 
@@ -207,15 +220,20 @@ class ParticipantStatus(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
 
-def _uuidify(directory):
-    """Helper to generate UUID's in file names while maintaining their extension"""
-    def wrapped_uuidify(obj, filename):
+@deconstructible
+class _uuidify(object):
+
+    def __init__(self, directory):
+        self.directory = directory
+
+    def __call__(self, instance, filename):
         name, extension = os.path.splitext(filename)
-        truncated_uuid = str(uuid.uuid4())[0:5]
+        random_hash = str(uuid.uuid4())
         truncated_name = name[0:35]
-        return os.path.join(directory, str(obj.pk), truncated_uuid, "{0}{1}".format(truncated_name, extension))
-    return wrapped_uuidify
+        return os.path.join(self.directory, random_hash, "{0}{1}".format(truncated_name, extension))
 
 
 class SoftDeletableObjectManager(models.Manager):
@@ -253,7 +271,7 @@ class Competition(ChaHubSaveMixin, models.Model):
     admins = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='competition_admins', blank=True, null=True)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='competitioninfo_modified_by')
     last_modified = models.DateTimeField(auto_now_add=True)
-    pagecontainers = generic.GenericRelation(PageContainer)
+    pagecontainers = GenericRelation(PageContainer)
     published = models.BooleanField(default=False, verbose_name="Publicly Available")
     # Let's assume the first phase never needs "migration"
     last_phase_migration = models.PositiveIntegerField(default=1)
@@ -307,6 +325,9 @@ class Competition(ChaHubSaveMixin, models.Model):
         return reverse('competitions:view', kwargs={'pk':self.pk})
 
     def __unicode__(self):
+        return self.title
+
+    def __str__(self):
         return self.title
 
     def has_chagrade_bot(self):
@@ -376,7 +397,9 @@ class Competition(ChaHubSaveMixin, models.Model):
 
     def save(self, *args, **kwargs):
         # Make sure the image_url_base is set from the actual storage implementation
-        self.image_url_base = self.image.storage.url('')
+        # get_object_base_url was due to differences in boto vs boto3. A utility function seemed the best route to
+        # handle different storage implementations
+        self.image_url_base = get_object_base_url(self, 'image')
 
         if self.description:
             self.description = clean_html_script(self.description)
@@ -507,9 +530,9 @@ class Competition(ChaHubSaveMixin, models.Model):
                 if s.is_migrated is False:
                     participants[s.participant] = s
 
-            from tasks import evaluate_submission
+            from .tasks import evaluate_submission
 
-            for participant, submission in participants.items():
+            for participant, submission in list(participants.items()):
                 logger.info('Moving submission %s over' % submission)
 
                 file_args = {}
@@ -559,7 +582,7 @@ class Competition(ChaHubSaveMixin, models.Model):
 
         groups = phase.scores(include_scores_not_on_leaderboard=include_scores_not_on_leaderboard)
 
-        csvfile = StringIO.StringIO()
+        csvfile = io.StringIO()
         csvwriter = csv.writer(csvfile)
 
         for group in groups:
@@ -646,6 +669,9 @@ class Page(models.Model):
     def __unicode__(self):
         return self.label
 
+    def __str__(self):
+        return self.label
+
     class Meta:
         unique_together = (('label', 'category', 'container'),)
         ordering = ['category', 'rank']
@@ -662,7 +688,14 @@ class Page(models.Model):
 
     @property
     def processed_html(self):
-        url = PublicStorage.url("")
+        # We cannot just pass a blank URL anymore with S3 Boto3
+        # So we pass a space, and remove it
+
+        if settings.USE_AWS:
+            url = PublicStorage.url(" ").replace("%20", "")
+        else:
+            url = PublicStorage.url("")
+
         asset_base_url = "{0}competition_assets/{1}".format(url, self.competition.pk)
         proc_html = re.sub(r'{{[ ]*ASSET_BASE_URL[ ]*}}', asset_base_url, self.html)
         return proc_html
@@ -680,6 +713,9 @@ class Dataset(models.Model):
         ordering = ["number"]
 
     def __unicode__(self):
+        return "%s [%s]" % (self.name, self.datafile.name)
+
+    def __str__(self):
         return "%s [%s]" % (self.name, self.datafile.name)
 
 
@@ -954,6 +990,9 @@ class CompetitionPhase(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.competition.title, self.phasenumber)
 
+    def __str__(self):
+        return "%s - %s" % (self.competition.title, self.phasenumber)
+
     @property
     def is_active(self):
         """ Returns true when this phase of the competition is on-going. """
@@ -995,15 +1034,15 @@ class CompetitionPhase(models.Model):
         """
         ranks = {}
         # Only keep pairs for which the key is in the list of ids
-        valid_pairs = {k: v for k, v in id_value_pairs.iteritems() if k in ids}
+        valid_pairs = {k: v for k, v in id_value_pairs.items() if k in ids}
         if len(valid_pairs) == 0:
             return {id: 1 for id in ids}
         # Sort and compute ranks
-        for k, v in valid_pairs.iteritems():
+        for k, v in valid_pairs.items():
             if math.isnan(v):
                 # If we're getting a score value that is NaN, set to 0 for comparrison
                 valid_pairs[k] = Decimal('0.0')
-        sorted_pairs = sorted(valid_pairs.iteritems(), key=operator.itemgetter(1), reverse=not sort_ascending)
+        sorted_pairs = sorted(iter(valid_pairs.items()), key=operator.itemgetter(1), reverse=not sort_ascending)
         r = 1
         k, v = sorted_pairs[0]
         ranks[k] = r
@@ -1179,7 +1218,7 @@ class CompetitionPhase(models.Model):
                         computed_deps[field.computed.scoredef_id].append(field.scoredef)
             # Now read the submission scores
             values = {}
-            scoredef_ids = [sdef_id for (sdef_id, sdef) in not_computed_scoredefs.iteritems()]
+            scoredef_ids = [sdef_id for (sdef_id, sdef) in not_computed_scoredefs.items()]
             for s in SubmissionScore.objects.filter(scoredef_id__in=scoredef_ids, result_id__in=submission_ids):
                 if s.scoredef_id not in values:
                     values[s.scoredef_id] = {}
@@ -1187,7 +1226,7 @@ class CompetitionPhase(models.Model):
 
             # rank values per scoredef.key (not computed)
             ranks = {}
-            for (sdef_id, v) in values.iteritems():
+            for (sdef_id, v) in values.items():
                 sdef = not_computed_scoredefs[sdef_id]
                 ranks[sdef_id] = self.rank_values(submission_ids, v, sort_ascending=sdef.sorting=='asc')
 
@@ -1245,7 +1284,7 @@ class CompetitionPhase(models.Model):
                                 scores[id]['values'].append({'val': v, 'hidden_rnk': r, 'name' : sdef.key})
                         if (sdef.key == result['selection_key']):
                             overall_ranks = ranks[sdef.id]
-                    ranked_submissions = sorted(submission_ids, cmp=CompetitionPhase.rank_submissions(overall_ranks))
+                    ranked_submissions = sorted(submission_ids, key=cmp_to_key(CompetitionPhase.rank_submissions(overall_ranks)))
                     final_scores = [(overall_ranks[id], scores[id]) for id in ranked_submissions]
                     result['scores'] = final_scores
                     del result['scoredefs']
@@ -1254,7 +1293,7 @@ class CompetitionPhase(models.Model):
 
         for group in results:
             if type(group['scores']) == dict:
-                group['scores'] = group['scores'].items()
+                group['scores'] = list(group['scores'].items())
         return results
 
 # Competition Participant
@@ -1277,6 +1316,9 @@ class CompetitionParticipant(models.Model):
         unique_together = (('user', 'competition'),)
 
     def __unicode__(self):
+        return "%s - %s" % (self.competition.title, self.user.username)
+
+    def __str__(self):
         return "%s - %s" % (self.competition.title, self.user.username)
 
     @property
@@ -1311,6 +1353,9 @@ class CompetitionSubmissionStatus(models.Model):
     codename = models.SlugField(max_length=20,unique=True)
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
 
@@ -1385,6 +1430,9 @@ class CompetitionSubmission(ChaHubSaveMixin, models.Model):
     def __unicode__(self):
         return "%s %s %s %s" % (self.pk, self.phase.competition.title, self.phase.label, self.participant.user.email)
 
+    def __str__(self):
+        return "%s %s %s %s" % (self.pk, self.phase.competition.title, self.phase.label, self.participant.user.email)
+
     @property
     def metadata_predict(self):
         '''Generated from the prediction step (if applicable) of evaluation a submission, sometimes competition
@@ -1422,7 +1470,7 @@ class CompetitionSubmission(ChaHubSaveMixin, models.Model):
         }
 
     def save(self, ignore_submission_limits=False, *args, **kwargs):
-        print "Saving competition submission."
+        logger.info("Saving competition submission.")
         if self.participant.competition != self.phase.competition:
             raise Exception("Competition for phase and participant must be the same")
 
@@ -1455,7 +1503,7 @@ class CompetitionSubmission(ChaHubSaveMixin, models.Model):
         # only at save on object creation should it be submitted
         if not self.pk:
             if not ignore_submission_limits:
-                print "This is a new submission, getting the submission number."
+                logger.info("This is a new submission, getting the submission number.")
                 subnum = CompetitionSubmission.objects.filter(phase=self.phase, participant=self.participant).aggregate(Max('submission_number'))['submission_number__max']
                 if subnum is not None:
                     self.submission_number = subnum + 1
@@ -1468,25 +1516,25 @@ class CompetitionSubmission(ChaHubSaveMixin, models.Model):
 
                 all_count = CompetitionSubmission.objects.filter(phase=self.phase, participant=self.participant).count()
 
-                print "This is submission number %d, and %d submissions have failed" % (all_count, failed_count)
+                logger.info("This is submission number %d, and %d submissions have failed" % (all_count, failed_count))
 
                 submission_count = CompetitionSubmission.objects.filter(phase=self.phase,
                                                                                participant=self.participant).exclude(
                     status__codename=CompetitionSubmissionStatus.FAILED).count()
 
                 if (submission_count >= self.phase.max_submissions):
-                    print "Checking to see if the submission_count (%d) is greater than the maximum allowed (%d)" % (submission_count, self.phase.max_submissions)
+                    logger.info("Checking to see if the submission_count (%d) is greater than the maximum allowed (%d)" % (submission_count, self.phase.max_submissions))
                     raise PermissionDenied("The maximum number of submissions has been reached.")
                 else:
-                    print "Submission number below maximum."
+                    logger.info("Submission number below maximum.")
 
                 if self.phase.competition.end_date and not self.phase.phase_never_ends:
                     if now().date() > self.phase.competition.end_date.date():
-                        print "Submission is past competition end."
+                        logger.info("Submission is past competition end.")
                         raise PermissionDenied("The competition has ended. No more submissions are allowed.")
 
                 if hasattr(self.phase, 'max_submissions_per_day'):
-                    print 'Checking submissions per day count'
+                    logger.info('Checking submissions per day count')
 
                     # All submissions from today without those that failed
                     submissions_from_today_count = CompetitionSubmission.objects.filter(
@@ -1495,11 +1543,11 @@ class CompetitionSubmission(ChaHubSaveMixin, models.Model):
                         submitted_at__gte=datetime.date.today(),
                     ).exclude(status__codename=CompetitionSubmissionStatus.FAILED).count()
 
-                    print 'Count is %s and maximum is %s' % (submissions_from_today_count, self.phase.max_submissions_per_day)
+                    logger.info('Count is %s and maximum is %s' % (submissions_from_today_count, self.phase.max_submissions_per_day))
 
                     # if submissions_from_today_count + 1 - failed_count > self.phase.max_submissions_per_day or self.phase.max_submissions_per_day == 0:
                     if (submissions_from_today_count + 1) > self.phase.max_submissions_per_day or self.phase.max_submissions_per_day == 0:
-                        print 'PERMISSION DENIED'
+                        logger.info('PERMISSION DENIED')
                         raise PermissionDenied("The maximum number of submissions this day have been reached.")
             else:
                 # Make sure we're incrementing the number if we're forcing in a new entry
@@ -1522,7 +1570,9 @@ class CompetitionSubmission(ChaHubSaveMixin, models.Model):
         if self.participant.competition.enable_teams:
             self.team = get_user_team(self.participant, self.participant.competition)
 
-        self.file_url_base = self.file.storage.url('')
+        # get_object_base_url was due to differences in boto vs boto3. A utility function seemed the best route to
+        # handle different storage implementations
+        self.file_url_base = get_object_base_url(self, 'file')
         res = super(CompetitionSubmission, self).save(*args, **kwargs)
         return res
 
@@ -1683,6 +1733,9 @@ class SubmissionScoreDef(models.Model):
     def __unicode__(self):
         return self.label
 
+    def __str__(self):
+        return self.label
+
 
 class CompetitionDefBundle(models.Model):
     """Defines a competition bundle."""
@@ -1706,7 +1759,7 @@ class CompetitionDefBundle(models.Model):
             dt = utc.localize(dt)
         return dt
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def unpack(self):
         """
         This method unpacks a competition bundle and creates a competition from
@@ -1720,7 +1773,7 @@ class CompetitionDefBundle(models.Model):
             from apps.web.tasks import _make_url_sassy
             url = _make_url_sassy(self.s3_config_bundle)
             logger.info("CompetitionDefBundle::unpacking url=%s", url)
-            competition_def_data = urllib.urlopen(url).read()
+            competition_def_data = urllib.request.urlopen(url).read()
             zf = zipfile.ZipFile(io.BytesIO(competition_def_data))
         else:
             zf = zipfile.ZipFile(self.config_bundle)
@@ -1733,7 +1786,7 @@ class CompetitionDefBundle(models.Model):
         _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
 
         def dict_representer(dumper, data):
-            return dumper.represent_dict(data.iteritems())
+            return dumper.represent_dict(iter(data.items()))
 
         def dict_constructor(loader, node):
             return OrderedDict(loader.construct_pairs(node))
@@ -1741,7 +1794,7 @@ class CompetitionDefBundle(models.Model):
         yaml.add_representer(OrderedDict, dict_representer)
         yaml.add_constructor(_mapping_tag, dict_constructor)
 
-        comp_spec = yaml.load(yaml_contents)
+        comp_spec = yaml.full_load(yaml_contents)
         comp_base = comp_spec.copy()
 
         for block in ['html', 'phases', 'leaderboard']:
@@ -1806,14 +1859,15 @@ class CompetitionDefBundle(models.Model):
                               "set to correct file paths."
 
         # Populate competition pages
+        # Decode on page contents is so we don't have weird formatting on the page content when displayed due to being unicode
         pc,_ = PageContainer.objects.get_or_create(object_id=comp.id, content_type=ContentType.objects.get_for_model(comp))
         details_category = ContentCategory.objects.get(name="Learn the Details")
         Page.objects.create(category=details_category, container=pc,  codename="overview", competition=comp,
-                                   label="Overview", rank=0, html=zf.read(comp_spec['html']['overview']))
+                                   label="Overview", rank=0, html=zf.read(comp_spec['html']['overview']).decode('utf-8'))
         Page.objects.create(category=details_category, container=pc,  codename="evaluation", competition=comp,
-                                   label="Evaluation", rank=1, html=zf.read(comp_spec['html']['evaluation']))
+                                   label="Evaluation", rank=1, html=zf.read(comp_spec['html']['evaluation']).decode('utf-8'))
         Page.objects.create(category=details_category, container=pc,  codename="terms_and_conditions", competition=comp,
-                                   label="Terms and Conditions", rank=2, html=zf.read(comp_spec['html']['terms']))
+                                   label="Terms and Conditions", rank=2, html=zf.read(comp_spec['html']['terms']).decode('utf-8'))
 
         default_pages = ('overview', 'evaluation', 'terms', 'data')
 
@@ -1826,7 +1880,7 @@ class CompetitionDefBundle(models.Model):
                     competition=comp,
                     label=page_name,
                     rank=3 + page_number,     # Start at 3 (Overview, Evaluation and Terms and Conditions first)
-                    html=zf.read(page_data)
+                    html=zf.read(page_data).decode('utf-8')
                 )
 
         participate_category = ContentCategory.objects.get(name="Participate")
@@ -1838,7 +1892,7 @@ class CompetitionDefBundle(models.Model):
                 competition=comp,
                 label="Get Data",
                 rank=0,
-                html=zf.read(comp_spec['html']['data'])
+                html=zf.read(comp_spec['html']['data']).decode('utf-8')
             )
         except KeyError:
             assert False, "No HTML file with key `data` specified. This is required."
@@ -1879,7 +1933,7 @@ class CompetitionDefBundle(models.Model):
             if 'datasets' in phase_spec:
                 datasets = phase_spec['datasets']
 
-                for dataset_index, dataset in datasets.items():
+                for dataset_index, dataset in list(datasets.items()):
                     if "key" in dataset:
                         dataset["url"] = reverse("datasets_download", kwargs={"dataset_key": dataset["key"]})
 
@@ -2061,7 +2115,7 @@ class CompetitionDefBundle(models.Model):
             logger.info("CompetitionDefBundle::unpack saved scoring program and reference data (pk=%s)", self.pk)
             eft,cr_=ExternalFileType.objects.get_or_create(name="Data", codename="data")
             count = 1
-            for ds in datasets.keys():
+            for ds in list(datasets.keys()):
                 f = ExternalFile.objects.create(type=eft, source_url=datasets[ds]['url'], name=datasets[ds]['name'], creator=self.owner)
                 f.save()
                 d = Dataset.objects.create(creator=self.owner, datafile=f, number=count)
@@ -2078,7 +2132,7 @@ class CompetitionDefBundle(models.Model):
             # If there's more than one create each of them
             if 'leaderboards' in comp_spec['leaderboard']:
                 leaderboards = {}
-                for key, value in comp_spec['leaderboard']['leaderboards'].items():
+                for key, value in list(comp_spec['leaderboard']['leaderboards'].items()):
                     rg,cr = SubmissionResultGroup.objects.get_or_create(competition=comp, key=value['label'].strip(), label=value['label'].strip(), ordering=value['rank'])
                     leaderboards[rg.label] = rg
                     for gp in comp.phases.all():
@@ -2088,8 +2142,8 @@ class CompetitionDefBundle(models.Model):
             # Create score groups
             if 'column_groups' in comp_spec['leaderboard']:
                 groups = {}
-                for key, vals in comp_spec['leaderboard']['column_groups'].items():
-                    index = comp_spec['leaderboard']['column_groups'].keys().index(key) + 1
+                for key, vals in list(comp_spec['leaderboard']['column_groups'].items()):
+                    index = list(comp_spec['leaderboard']['column_groups'].keys()).index(key) + 1
                     if vals is None:
                         vals = dict()
                     setdefaults = {
@@ -2103,8 +2157,8 @@ class CompetitionDefBundle(models.Model):
             # Create scores.
             if 'columns' in comp_spec['leaderboard']:
                 columns = {}
-                for key, vals in comp_spec['leaderboard']['columns'].items():
-                    index = comp_spec['leaderboard']['columns'].keys().index(key) + 1
+                for key, vals in list(comp_spec['leaderboard']['columns'].items()):
+                    index = list(comp_spec['leaderboard']['columns'].keys()).index(key) + 1
                     # Do non-computed columns first
                     if 'computed' in vals:
                         continue
@@ -2142,8 +2196,8 @@ class CompetitionDefBundle(models.Model):
                     # Associate the score definition with its leaderboard
                     sdg = SubmissionScoreDefGroup.objects.create(scoredef=sd, group=leaderboards[vals['leaderboard']['label']])
 
-                for key, vals in comp_spec['leaderboard']['columns'].items():
-                    index = comp_spec['leaderboard']['columns'].keys().index(key) + 1
+                for key, vals in list(comp_spec['leaderboard']['columns'].items()):
+                    index = list(comp_spec['leaderboard']['columns'].keys()).index(key) + 1
                     # Only process the computed columns this time around.
                     if 'computed' not in vals:
                         continue
@@ -2202,7 +2256,7 @@ class CompetitionDefBundle(models.Model):
                 logger.info("CompetitionDefBundle::unpack created scores (pk=%s)", self.pk)
 
         # Find any static files and save them to storage, ignoring actual assets directory itself
-        assets = list(filter(lambda x: x.startswith('assets/') and x != "assets/", zf.namelist()))
+        assets = list([x for x in zf.namelist() if x.startswith('assets/') and x != "assets/"])
         asset_path = "competition_assets/{}/{}"
         for asset in assets:
             public_path = asset_path.format(comp.pk, os.path.basename(asset))
@@ -2226,6 +2280,9 @@ class SubmissionScoreDefGroup(models.Model):
         unique_together = (('scoredef', 'group'),)
 
     def __unicode__(self):
+        return "%s %s" % (self.scoredef, self.group)
+
+    def __str__(self):
         return "%s %s" % (self.scoredef, self.group)
 
     def save(self, *args, **kwargs):
@@ -2265,6 +2322,9 @@ class SubmissionScoreSet(MPTTModel):
     def __unicode__(self):
         return "%s %s" % (self.parent.label if self.parent else None, self.label)
 
+    def __str__(self):
+        return "%s %s" % (self.parent.label if self.parent else None, self.label)
+
 
 class SubmissionScore(models.Model):
     result = models.ForeignKey(CompetitionSubmission, related_name='scores')
@@ -2288,6 +2348,9 @@ class PhaseLeaderBoard(models.Model):
         return CompetitionSubmission.objects.filter(leaderboard_entry_result__board=self)
 
     def __unicode__(self):
+        return "%s [%s]" % (self.phase.label,'Open' if self.is_open else 'Closed')
+
+    def __str__(self):
         return "%s [%s]" % (self.phase.label,'Open' if self.is_open else 'Closed')
 
     def is_open(self):
@@ -2345,6 +2408,13 @@ class OrganizerDataSet(models.Model):
         super(OrganizerDataSet, self).save(**kwargs)
 
     def __unicode__(self):
+        if self.full_name:
+            return self.full_name
+        else:
+            self.save()  # to get full_name
+            return self.full_name
+
+    def __str__(self):
         if self.full_name:
             return self.full_name
         else:

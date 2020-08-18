@@ -30,7 +30,7 @@ class CompetitionDownloadCSVTests(TestCase):
     def setUp(self):
         super(CompetitionDownloadCSVTests, self).setUp()
 
-        self.user = User.objects.create(email='test@user.com', username=u'testuser\u2020')
+        self.user = User.objects.create(email='test@user.com', username='testuser\u2020')
         self.other_user = User.objects.create(email='other@user.com', username='other')
         self.competition = Competition.objects.create(creator=self.user, modified_by=self.user)
         self.participant_1 = CompetitionParticipant.objects.create(
@@ -51,7 +51,7 @@ class CompetitionDownloadCSVTests(TestCase):
             phase=self.phase_1,
             status=submission_finished,
             submitted_at=datetime.datetime.now() - datetime.timedelta(days=29),
-            description=u"Some description with unicode \u2020"
+            description="Some description with unicode \u2020"
         )
         self.leader_board = PhaseLeaderBoard.objects.create(phase=self.phase_1)
         self.leader_board_entry_1 = PhaseLeaderBoardEntry.objects.create(
@@ -62,14 +62,14 @@ class CompetitionDownloadCSVTests(TestCase):
         result_group = SubmissionResultGroup.objects.create(
             competition=self.competition,
             key="Key",
-            label=u"Test \u2020",
+            label="Test \u2020",
             ordering=1
         )
         submission_result_group_phase = SubmissionResultGroupPhase.objects.create(phase=self.phase_1, group=result_group)
         score_def = SubmissionScoreDef.objects.create(
             competition=self.competition,
             key="Key",
-            label=u"Test \u2020",
+            label="Test \u2020",
         )
         SubmissionScoreDefGroup.objects.create(
             scoredef=score_def,
@@ -83,7 +83,7 @@ class CompetitionDownloadCSVTests(TestCase):
         SubmissionScoreSet.objects.create(
             competition=self.competition,
             key="Key",
-            label=u"Test \u2020",
+            label="Test \u2020",
             scoredef=score_def,
         )
 
@@ -93,4 +93,4 @@ class CompetitionDownloadCSVTests(TestCase):
     def test_download_competition_csv_returns_200_with_unicode_labels(self):
         '''Unicode set in setUp method'''
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)

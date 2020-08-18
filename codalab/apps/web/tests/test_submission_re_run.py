@@ -57,16 +57,16 @@ class SubmissionReRunTests(TestCase):
     def test_re_run_submission_returns_404_if_not_competition_owner(self):
         self.client.login(username="other", password="pass")
         resp = self.client.post(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_re_run_submission_returns_404_if_participant_not_owner(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.post(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_re_run_submission_returns_200_and_calls_evaluate_submission(self):
         self.client.login(username="organizer", password="pass")
         with mock.patch('apps.web.tasks.evaluate_submission.apply_async') as evaluate_mock:
             resp = self.client.post(self.url)
-            self.assertEquals(resp.status_code, 200)
+            self.assertEqual(resp.status_code, 200)
         self.assertTrue(evaluate_mock.called)

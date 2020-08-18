@@ -22,7 +22,7 @@ class Command(BaseCommand):
                             name='Bundle service client')
 
         if len(args) != 1:
-            print 'Usage: ./manage set_oauth_key <bundle service config json file>'
+            print('Usage: ./manage set_oauth_key <bundle service config json file>')
             return
         json_path = args[0]
 
@@ -34,4 +34,4 @@ class Command(BaseCommand):
             auth['address'] = 'http://localhost:8000'
         auth['app_id'] = client.client_id
         auth['app_key'] = client.client_secret
-        print json.dumps(cfg, sort_keys=True, indent=4, separators=(',', ': '))
+        print(json.dumps(cfg, sort_keys=True, indent=4, separators=(',', ': ')))

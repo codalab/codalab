@@ -2,11 +2,9 @@ from rest_framework import routers
 
 from django.conf.urls import url
 
-
 from . import views
 
 router = routers.DefaultRouter()
-
 
 router.register(r'competition/(?P<competition_id>\d+)/participants', views.CompetitionParticipantAPIViewSet)
 router.register(r'competition', views.CompetitionAPIViewSet)

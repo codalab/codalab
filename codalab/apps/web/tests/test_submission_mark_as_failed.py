@@ -51,16 +51,16 @@ class SubmissionMarkAsFailedTests(TestCase):
     def test_mark_as_failed_returns_404_if_not_competition_owner(self):
         self.client.login(username="other", password="pass")
         resp = self.client.post(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_mark_as_failed_returns_404_if_participant_not_owner(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.post(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_mark_as_failed_returns_200_and_sets_submission_status_to_failed_for_owner(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.post(self.url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         submission = CompetitionSubmission.objects.get(pk=self.submission_1.pk)
-        self.assertEquals(submission.status.codename, "failed")
+        self.assertEqual(submission.status.codename, "failed")

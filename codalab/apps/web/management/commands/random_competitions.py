@@ -3,36 +3,33 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from apps.web.models import Competition, CompetitionPhase, CompetitionDataset, CompetitionParticipant, ExternalFile, ExternalFileType, ParticipantStatus
 
-from optparse import make_option
-
 import datetime
-
 import pytz
 
 
 class Command(BaseCommand):
     help = "Creates test competition."
 
-    option_list = BaseCommand.option_list + (
-        make_option('--name',
+    def add_arguments(self, parser):
+        parser.add_argument('--name',
                     dest='name',
                     help="Name ofthe competition"),
-        make_option('--email',
+        parser.add_argument('--email',
                     dest='email',
                     help="Email address of user. Will create if doesnt exist"),
-        make_option('--number',
+        parser.add_argument('--number',
                     dest='number',
-                    type='int',
+                    type=int,
                     help="Number of competitions to create"),
-        make_option('--participant',
+        parser.add_argument('--participant',
                     dest='participant',
                     help="Participant name prefix. participant2@test.com"),
-        make_option('--participant_count',
+        parser.add_argument('--participant_count',
                     dest='participant_count',
-                    type='int',
+                    type=int,
                     default=2,
                     help="Number of participants."),
-        make_option('--participant_status',
+        parser.add_argument('--participant_status',
                     choices=(
                         ParticipantStatus.UNKNOWN, ParticipantStatus.PENDING,
                         ParticipantStatus.APPROVED, ParticipantStatus.DENIED),
@@ -40,7 +37,6 @@ class Command(BaseCommand):
                     default=ParticipantStatus.PENDING,
                     help="The initial status of the created participants"
                     )
-    )
 
     def handle(self, *args, **options):
         for count in range(1, options['number'] + 1):
@@ -51,7 +47,7 @@ class Command(BaseCommand):
             if cr:
                 u.set_password('testing')
                 u.save()
-                print "Pasword for user is: testing"
+                print("Pasword for user is: testing")
             competition_name = "%s %d" % (options['name'], count)
             c = Competition.objects.create(title=competition_name,
                                            description="This is the description for competition %s" % options[
@@ -88,7 +84,7 @@ class Command(BaseCommand):
 
                 f = ExternalFile.objects.create(type=ftype,
                                                 source_url="http://test.com/test/%s" % slugify("%s%d" %
-                                                                                               (unicode(competition_name), i)),
+                                                                                               (str(competition_name), i)),
                                                 source_address_info="SPECIFIC_INFO",
                                                 creator=u)
 

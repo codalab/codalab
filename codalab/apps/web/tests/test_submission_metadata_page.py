@@ -41,18 +41,18 @@ class CompetitionSubmissionMetdataPageTests(TestCase):
     def test_submissions_view_as_admin_returns_200(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_submissions_view_as_owner_returns_200(self):
         self.client.login(username="other_admin", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_submissions_view_as_logged_in_non_owner_or_admin_returns_404(self):
         self.client.login(username="other", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_submissions_view_as_non_logged_in_returns_302(self):
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 302)

@@ -187,7 +187,7 @@ class JobsTests(TestCase):
     def _ex_handler(self, ajob, aex):
         """Sample exception handler"""
         self.assertIsNotNone(aex.args[0])
-        self.assertEquals(ajob, aex.args[0])
+        self.assertEqual(ajob, aex.args[0])
         return JobTaskResult(status=Job.RUNNING)
 
     def test_run_job_task2(self):

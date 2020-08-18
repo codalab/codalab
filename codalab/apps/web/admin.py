@@ -1,7 +1,6 @@
 from django.contrib import admin
-import models
-from django.contrib.contenttypes import generic
-from mptt.admin import MPTTModelAdmin
+from . import models
+
 
 class DatasetAdmin(admin.ModelAdmin):
     pass

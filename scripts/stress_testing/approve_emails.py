@@ -4,7 +4,7 @@ import argparse
 import fnmatch
 
 from textwrap import dedent
-from utils import run_shell_script
+from .utils import run_shell_script
 
 
 def pattern_match(patterns, email):
@@ -69,12 +69,12 @@ if __name__ == "__main__":
     print("Approving:")
     for email in to_approve:
         print(email)
-    print ''
+    print('')
 
     print("Denying:")
     for email in to_deny:
         print(email)
-    print ''
+    print('')
 
     # Execute approvals/denials
     process_participants_script = dedent("""

@@ -10,10 +10,10 @@ class Command(BaseCommand):
         User = get_user_model()
         user, created = User.objects.get_or_create(username=username)
         if created:
-            print 'Created a new user.'
+            print('Created a new user.')
         if password is not None:
-            print 'Setting user password.'
+            print('Setting user password.')
             user.password = password
             user.save()
-        print 'User ID: %s' % user.id
-        print 'User name: %s' % user.username
+        print('User ID: %s' % user.id)
+        print('User name: %s' % user.username)

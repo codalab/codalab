@@ -1,10 +1,8 @@
-from django.conf.urls import patterns, include, url
-from django.views.generic import TemplateView
+from django.conf.urls import include, url
 
 from .. import views
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', views.competition_index, name='list'),
     url(r'^(?P<pk>\d+)$', views.CompetitionDetailView.as_view(), name='view'),
     url(r'^create$', views.CompetitionUpload.as_view(), name='create'),
@@ -38,4 +36,4 @@ urlpatterns = patterns(
     url(r'^(?P<pk>\d+)/widgets/$', views.CompetitionWidgetsView.as_view(), name='widgets'),
     url(r'^submission_widget/(?P<pk>\d+)/$', views.CompetitionSubmissionWidgetView.as_view(), name='submission_widget'),
     url(r'^leaderboard_widget/(?P<pk>\d+)/$', views.CompetitionLeaderboardWidgetView.as_view(), name='leaderboard_widget'),
-)
+]

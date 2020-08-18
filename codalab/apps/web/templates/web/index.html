@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+
+{% load static %}
+
 {% block head_title %}Home{% endblock %}
 {% block nosubheader %} {% endblock nosubheader %}
 {% block title %}{% endblock title %}
@@ -8,7 +11,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm-12 col-md-8 col-md-offset-2">
-                    <img src="{{STATIC_URL}}img/codalab-logo-onecolor-reverse.png" alt="CodaLab" class="img-responsive">
+                    <img src="{% static "img/codalab-logo-onecolor-reverse.png" %}" alt="CodaLab" class="img-responsive">
                 </div>
             </div>
         </div>

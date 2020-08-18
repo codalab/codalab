@@ -36,13 +36,13 @@ class CoopetitionsSmokeTests(TestCase):
     def test_like_returns_200_for_logged_in_user(self):
         self.client.login(username="user", password="pass")
         resp = self.client.get(reverse("coopetitions:like", kwargs={'submission_pk': self.submission.pk}))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_like_returns_302_for_non_logged_in_user(self):
         resp = self.client.get(reverse("coopetitions:like", kwargs={'submission_pk': self.submission.pk}))
-        self.assertEquals(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 302)
 
     def test_like_returns_404_for_non_existing_submission(self):
         self.client.login(username="user", password="pass")
         resp = self.client.get(reverse("coopetitions:like", kwargs={'submission_pk': 0}))
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)

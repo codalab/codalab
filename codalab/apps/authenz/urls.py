@@ -1,4 +1,4 @@
-from django.conf.urls import (include, patterns, url)
+from django.conf.urls import include, url
 
 from apps.authenz import views
 
@@ -8,8 +8,8 @@ def oauth2_include():
     urlconf.urlpatterns = [p for p in urlconf.urlpatterns if p.name == 'token']
     return (urlconf, name, namespace)
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^validation', views.ValidationApi.as_view()),
     url(r'^info', views.InfoApi.as_view()),
     url(r'', oauth2_include()),
-)
+]

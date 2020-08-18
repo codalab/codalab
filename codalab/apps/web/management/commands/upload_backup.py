@@ -18,10 +18,10 @@ class Command(BaseCommand):
         dump_path = join("/app/backups", dump_name)
 
         # Upload it
-        print "Uploading backup '{}'".format(dump_path)
+        print("Uploading backup '{}'".format(dump_path))
         upload_url = _make_url_sassy('backups/{}'.format(dump_name), permission='w')
         _put_blob(upload_url, dump_path)
 
         # Clean up
-        print "Success! Removing local dump file '{}'".format(dump_path)
+        print("Success! Removing local dump file '{}'".format(dump_path))
         remove(dump_path)

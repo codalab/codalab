@@ -1,8 +1,8 @@
-{% load url from future %}
 {% load account %}
 {% load analytical %}
 {% load codalab_tags %}
 {% load compress %}
+{% load static %}
 
 <!DOCTYPE html>
 <html class="no-js" {% block custom_html_attributes %}{% endblock %} lang="en">
@@ -13,7 +13,7 @@
 
     <!-- Set the viewport width to device width for mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link type="image/x-icon" rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
+    <link type="image/x-icon" rel="shortcut icon" href="{% static "img/favicon.ico" %}">
     {% block meta %}
     {% endblock %}
 
@@ -21,24 +21,24 @@
 
     {% block css %}
         <!-- Included CSS Files (Compressed) -->
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.dataTables.css">
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-editable.css">
-        <link rel="stylesheet" href="{{ STATIC_URL }}js/vendor/select2/select2.css" />
-        <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-eu-cookie-law-popup.css">
+        <link rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}">
+        <link rel="stylesheet" href="{% static "css/jquery-editable.css" %}">
+        <link rel="stylesheet" href="{% static "js/vendor/select2/select2.css" %}" />
+        <link rel="stylesheet" href="{% static "css/jquery-eu-cookie-law-popup.css" %}">
         {% if compile_less %}
-            <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/imports.css">
+            <link rel="stylesheet" type="text/css" href="{% static "css/imports.css" %}">
         {% else %}
-            <link rel="stylesheet/less" type="text/css" href="{{ STATIC_URL }}less/imports.less">
+            <link rel="stylesheet/less" type="text/css" href="{% static "less/imports.less" %}">
             <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.5/less.min.js"></script>
         {% endif %}
         <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
-        <script src="{{ STATIC_URL }}js/vendor/jquery-1.10.2.min.js"></script>
-        <script src="{{ STATIC_URL }}js/vendor/custom.modernizr.js"></script>
+        <script src="{% static "js/vendor/jquery-1.10.2.min.js" %}"></script>
+        <script src="{% static "js/vendor/custom.modernizr.js" %}"></script>
         <!-- IE Fix for HTML5 Tags -->
         <!--[if lt IE 9]>
             <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
-        <script src="{{ STATIC_URL }}js/vendor/jquery-eu-cookie-law-popup.js"></script>
+        <script src="{% static "js/vendor/jquery-eu-cookie-law-popup.js" %}"></script>
     {% endblock css %}
 
     {% block extra_headers %}
@@ -71,7 +71,7 @@
                         {% if CUSTOM_HEADER_LOGO %}
                             <img src="{{ CUSTOM_HEADER_LOGO }}" alt="Home">
                         {% else %}
-                            <img src="{{ STATIC_URL }}img/codalab-logo-fullcolor-positive.png" alt="Home">
+                            <img src="{% static "img/codalab-logo-fullcolor-positive.png" %}" alt="Home">
                         {% endif %}
                     </a>
                 {% endblock title %}
@@ -110,7 +110,7 @@
                         {% if user.is_authenticated %}
                             <li class="dropdown {% active request '/accounts/' %}">
                                 <a href="{% url 'user_settings' %}">
-                                    <img src="{{ STATIC_URL }}img/icon_mini_avatar.png" class="mini-avatar" alt="{{user.username}}"> {{user.username}} <span class="caret"></span>
+                                    <img src="{% static "img/icon_mini_avatar.png" %}" class="mini-avatar" alt="{{user.username}}"> {{user.username}} <span class="caret"></span>
                                 </a>
                                 <ul class="dropdown-menu" role="menu">
                                     {% if user.is_superuser %}
@@ -194,13 +194,13 @@
 
     <script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
 
-    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
-    <script src="{{ STATIC_URL }}js/vendor/select2/select2-forked.js"></script>
-    <script src="{{ STATIC_URL }}lib/jq/jquery.cookie.js"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "js/vendor/select2/select2-forked.js" %}"></script>
+    <script src="{% static "lib/jq/jquery.cookie.js" %}"></script>
 
-    <script type="text/javascript" src="{{STATIC_URL}}js/app.js"></script>
-    <script type="text/javascript" src="{{STATIC_URL}}js/Competition.js"></script>
-    <script type="text/javascript" src="{{STATIC_URL}}js/main.js"></script>
+    <script type="text/javascript" src="{% static "js/app.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/Competition.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/main.js" %}"></script>
 
     <div id="maintenance_modal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">

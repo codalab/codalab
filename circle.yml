@@ -10,7 +10,7 @@ jobs:
       DJANGO_SETTINGS_MODULE: codalab.settings
       DJANGO_CONFIGURATION: Dev
     docker:
-      - image: circleci/python:2.7.15
+      - image: circleci/python:3.8.3
     steps:
       - checkout
       - restore_cache:
@@ -34,8 +34,8 @@ jobs:
       - run:
           name: Run PyTest
           environment:
-            DJANGO_SETTINGS_MODULE: "codalab.settings"
-            DJANGO_CONFIGURATION: "Dev"
+            DJANGO_SETTINGS_MODULE: "codalab.settings.local"
+            DJANGO_CONFIGURATION: "Test"
             CHAHUB_API_URL: "http://localhost/test/"
             CHAHUB_API_KEY: "some-secret-key"
           command: cd codalab && py.test

@@ -27,26 +27,26 @@ class CompetitionYamlDownload(TestCase):
     def test_competition_yaml_download_returns_404_for_non_existant_competition(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:download_yaml", kwargs={"competition_pk": 0}))
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_competition_yaml_download_returns_403_for_non_admin_and_non_creator(self):
         self.client.login(username="non_admin", password="pass")
         resp = self.client.get(reverse("competitions:download_yaml", kwargs={"competition_pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_competition_yaml_download_returns_200_for_admin(self):
         self.client.login(username="admin", password="pass")
         resp = self.client.get(reverse("competitions:download_yaml", kwargs={"competition_pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_competition_yaml_download_returns_200_for_creator(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:download_yaml", kwargs={"competition_pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_competition_yaml_download_returns_the_original_yaml_data(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:download_yaml", kwargs={"competition_pk": self.competition.pk}))
-        self.assertEquals(resp.content, "original yaml file contents")
-        self.assertIn(('Content-Type', 'text/yaml'), resp.items())
-        self.assertIn(('Content-Disposition', 'attachment; filename="competition_%s.yaml"' % self.competition.pk), resp.items())
+        self.assertEqual(resp.content, b"original yaml file contents")
+        self.assertIn(('Content-Type', 'text/yaml'), list(resp.items()))
+        self.assertIn(('Content-Disposition', 'attachment; filename="competition_%s.yaml"' % self.competition.pk), list(resp.items()))

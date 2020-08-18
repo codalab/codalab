@@ -47,24 +47,24 @@ class DownloadRecordTests(TestCase):
         })
         self.client.get(other_file_url)
         updated_submission = CompetitionSubmission.objects.get(pk=self.submission.pk)
-        self.assertEquals(updated_submission.download_count, 0)
+        self.assertEqual(updated_submission.download_count, 0)
 
     def test_download_submissions_without_permissions_doesnt_increase_download_count(self):
         self.client.logout()
         self.client.login(username="other_user", password="pass")
         self.client.get(self.download_url)
         updated_submission = CompetitionSubmission.objects.get(pk=self.submission.pk)
-        self.assertEquals(updated_submission.download_count, 0)
+        self.assertEqual(updated_submission.download_count, 0)
 
     def test_download_submission_increases_download_count_by_one(self):
         self.client.get(self.download_url)
         updated_submission = CompetitionSubmission.objects.get(pk=self.submission.pk)
-        self.assertEquals(updated_submission.download_count, 1)
+        self.assertEqual(updated_submission.download_count, 1)
 
     def test_download_submission_multiple_times_only_increases_download_count_by_one(self):
         self.client.get(self.download_url)
         updated_submission = CompetitionSubmission.objects.get(pk=self.submission.pk)
-        self.assertEquals(updated_submission.download_count, 1)
+        self.assertEqual(updated_submission.download_count, 1)
         self.client.get(self.download_url)
         updated_submission = CompetitionSubmission.objects.get(pk=self.submission.pk)
-        self.assertEquals(updated_submission.download_count, 1)
+        self.assertEqual(updated_submission.download_count, 1)

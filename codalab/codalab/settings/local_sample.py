@@ -6,7 +6,7 @@ file named 'local.py' and set appropriate values for the settings.
 import subprocess
 import os
 
-from base import DevBase
+from .base import DevBase
 import uuid
 
 

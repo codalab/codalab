@@ -32,6 +32,9 @@ class CompetitionTeamsTests(TestCase):
             reason="Creator"
         )
 
+        TeamStatus.objects.get_or_create(name="Pending", codename="pending", description="Team is pending approval.")
+        TeamStatus.objects.get_or_create(name="Approved", codename="approved", description="Team was approved")
+
     def test_organizer_is_member_after_creating_team(self):
         self.client.login(username='testuser', password='test')
 
@@ -47,5 +50,5 @@ class CompetitionTeamsTests(TestCase):
         new_team.save()
 
         assert resp.status_code == 302
-        assert resp.url == 'http://testserver/teams/1/'
+        assert resp.url == '/teams/1/'
         assert get_user_team(self.creator_part, self.competition) != None

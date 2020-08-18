@@ -5,7 +5,7 @@ from apps.web.utils import docker_image_clean
 class DockerImageSanitationTests(TestCase):
 
     def _sanitize(self, str, result):
-        self.assertEquals(docker_image_clean(str), result)
+        self.assertEqual(docker_image_clean(str), result)
 
     def test_docker_image_sanitation(self):
         # Baseline

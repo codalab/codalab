@@ -7,7 +7,6 @@ from django.views.generic import UpdateView
 
 from .forms import ConfigurationForm
 from .models import Configuration
-from apps.web.models import Competition
 
 
 class ConfigurationFormView(UpdateView):
@@ -49,3 +48,23 @@ class ConfigurationFormView(UpdateView):
         settings.CUSTOM_HEADER_LOGO = self.object.header_logo.url if self.object.header_logo else None
 
         return super(ConfigurationFormView, self).form_valid(form)
+
+    # Added due to our get_form method expecting the form class (Probably could've removed that arg anyway)
+    def get_context_data(self, **kwargs):
+        """
+        Insert the form into the context dict.
+        """
+        if 'form' not in kwargs:
+            kwargs['form'] = self.get_form(self.form_class)
+        return super(ConfigurationFormView, self).get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests, instantiating a form instance with the passed
+        POST variables and then checked for validity.
+        """
+        form = self.get_form(self.form_class)
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)

@@ -3,7 +3,7 @@
 import re
 from textwrap import dedent
 
-from utils import run_shell_script
+from .utils import run_shell_script
 
 
 if __name__ == "__main__":
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     tasks = re.findall("\*\*\*.*?\*\*\*", cancel_tasks_result)
 
     for task in tasks:
-        print task.replace('***', '')
+        print(task.replace('***', ''))
 
     if not tasks:
-        print "No tasks to cancel!"
+        print("No tasks to cancel!")

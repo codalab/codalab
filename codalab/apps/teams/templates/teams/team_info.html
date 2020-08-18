@@ -4,12 +4,13 @@
 {% load team_tags %}
 {% load tz %}
 {% load url from future %}
+{% load static %}
 
 {% block page_title %}Team Management{% endblock page_title %}
 
 {% block extra_scripts %}
     <script src="{% static 'js/vendor/jquery.validate.min.js' %}"></script>
-    <link rel="stylesheet" href="{{ STATIC_URL }}teams/teams.css">
+    <link rel="stylesheet" href="{% static "teams/teams.css" %}">
 {% endblock %}
 {% block content %}
     <a href="{% url "competitions:view" pk=competition.pk %}" class="pull-right" >Go Back to Competition Homepage</a>

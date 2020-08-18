@@ -25,4 +25,4 @@ class TestSingleCompetitionMode(TestCase):
         self.competition.published = True
         self.competition.save()
         resp = self.client.get(reverse("home"))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)

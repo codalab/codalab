@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from django.utils.functional import cached_property
 from django import template
 import apps.web as web
-from apps.web.utils import PublicStorage, BundleStorage
+from apps.web.utils import PublicStorage, BundleStorage, get_object_base_url
 from datetime import datetime, timedelta
 
 register = template.Library()
@@ -203,7 +203,9 @@ class Team(models.Model):
 
     def save(self, *args, **kwargs):
         # Make sure the image_url_base is set from the actual storage implementation
-        self.image_url_base = self.image.storage.url('')
+        # get_object_base_url was due to differences in boto vs boto3. A utility function seemed the best route to
+        # handle different storage implementations
+        self.image_url_base = get_object_base_url(self, 'image')
         self.last_modified=now()
 
         if self.status is None:
@@ -293,7 +295,7 @@ class TeamMembership(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         other_memberships = TeamMembership.objects.filter(user=self.user, team__competition=self.team.competition).exclude(pk=self.pk)
         if len(other_memberships) != 0:
-            print("Removing user: {0} from other memberships in competition: {1}".format(self.user, self.team.competition))
+            logger.info("Removing user: {0} from other memberships in competition: {1}".format(self.user, self.team.competition))
             other_memberships.delete()
         super(TeamMembership, self).save(
             force_insert=force_insert,

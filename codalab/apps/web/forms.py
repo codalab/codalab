@@ -1,24 +1,16 @@
-import os
-
 from django import forms
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from s3direct.widgets import S3DirectWidget
 
-import models
+from . import models
 from tinymce.widgets import TinyMCE
 
 from apps.queues.models import Queue
 from apps.web.models import PageContainer
 from apps.web.models import ContentCategory
-from apps.web.models import SubmissionScoreSet
 from apps.web.utils import clean_html_script
-from apps.web.tasks import _make_url_sassy
 
-from apps.authenz.models import ClUser
 
 User = get_user_model()
 
@@ -207,11 +199,24 @@ class LeaderboardForm(forms.ModelForm):
 class CompetitionDatasetForm(forms.ModelForm):
     class Meta:
         model = models.Dataset
+        fields = [
+            'creator',
+            'name',
+            'description',
+            'number',
+        ]
 
 
 class CompetitionParticipantForm(forms.ModelForm):
     class Meta:
         model = models.CompetitionParticipant
+        fields = [
+            'user',
+            'competition',
+            'status',
+            'reason',
+            'deleted',
+        ]
 
 
 class OrganizerDataSetModelForm(forms.ModelForm):

@@ -1,14 +1,11 @@
 from django.conf import settings
-from django.conf.urls import patterns, include, url
-from django.contrib.sites.models import Site
+from django.conf.urls import include, url
 from django.views.generic import TemplateView, RedirectView
 from django.contrib import admin
 
-from apps.web.models import Competition
-
 from .. import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.HomePageView.as_view(), name='home'),
     url(r'^_ver', views.VersionView.as_view(),name='_version'),
     url(r'^my/', include('apps.web.urls.my')),
@@ -29,6 +26,9 @@ urlpatterns = patterns('',
     url(r'^s3direct/', include('s3direct.urls')),
 
     # Direct URL redirects
+    # In Django 1.9 these will no longer return as a permanent redirect by default. This seems fine for our case, as
+    # these URLS could change in the future.
+
     url(r'^(?i)AutoML/?', RedirectView.as_view(url='https://www.codalab.org/competitions/2321')),
     url(r'^(?i)ChalearnLAP_Pose/?', RedirectView.as_view(url='https://www.codalab.org/competitions/2231')),
     url(r'^(?i)ChalearnLAP_Action/?', RedirectView.as_view(url='https://www.codalab.org/competitions/2241')),
@@ -40,7 +40,7 @@ urlpatterns = patterns('',
 
     # Helper that closes window upon visiting
     url(r'^close/$', TemplateView.as_view(template_name='close.html')),
-)
+]
 
 
 if settings.DEBUG:
@@ -102,10 +102,6 @@ if settings.DEBUG:
     # )
 
     # Admin
-    urlpatterns += patterns('',
+    urlpatterns += [
         url(r'^admin/', include(admin.site.urls)),
-    )
-
-    # Local static files
-    from django.contrib.staticfiles.views import serve
-    urlpatterns += [url(r'^static/(?P<path>.*)$', serve), ]
+    ]

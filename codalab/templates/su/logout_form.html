@@ -1,5 +1,4 @@
 {% load switchuser %}
-{% load url from future %}
 
 <form method="POST" action="{% url "su-logout" %}?next={{ next }}">
     {% csrf_token %}

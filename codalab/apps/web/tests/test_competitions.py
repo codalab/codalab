@@ -1,4 +1,4 @@
-import StringIO
+import io
 import zipfile
 
 import mock
@@ -165,13 +165,13 @@ class CompetitionDeleteTests(CompetitionTest):
         self.client.login(username="participant", password="pass")
         resp = self.client.get(reverse("competitions:delete", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_can_view_delete_competition_with_ownership(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:delete", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_cant_delete_competition_even_as_admin(self):
         some_admin = User.objects.create_user(username="some_admin", password="pass")
@@ -180,27 +180,27 @@ class CompetitionDeleteTests(CompetitionTest):
         self.competition.admins.add(some_admin)
         self.competition.save()
         resp = self.client.get(reverse("competitions:delete", kwargs={"pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_cant_delete_competition_if_you_dont_own_it(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.delete(reverse("competitions:delete", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_can_delete_competition_with_ownership(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.delete(reverse("competitions:delete", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 302)
-        self.assertEquals(len(Competition.objects.filter(pk=self.competition.pk)), 0)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(len(Competition.objects.filter(pk=self.competition.pk)), 0)
 
 
 class CompetitionDumpDeleteTests(CompetitionTest):
 
     def setUp(self):
         super(CompetitionDumpDeleteTests, self).setUp()
-        zip_buffer = StringIO.StringIO()
+        zip_buffer = io.BytesIO()
         zip_name = "{0}.zip".format("Example_Title")
         zip_file = zipfile.ZipFile(zip_buffer, "w")
         zip_file.close()
@@ -215,26 +215,26 @@ class CompetitionDumpDeleteTests(CompetitionTest):
         self.client.login(username="participant", password="pass")
         resp = self.client.get(reverse("competitions:delete_dump", kwargs={"pk": self.competitiondump.pk}))
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_can_view_delete_competition_with_ownership(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:delete_dump", kwargs={"pk": self.competitiondump.pk}))
 
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_cant_delete_competition_if_you_dont_own_it(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.delete(reverse("competitions:delete_dump", kwargs={"pk": self.competitiondump.pk}))
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_can_delete_competition_with_ownership(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.delete(reverse("competitions:delete_dump", kwargs={"pk": self.competitiondump.pk}))
 
-        self.assertEquals(resp.status_code, 302)
-        self.assertEquals(len(CompetitionDump.objects.filter(pk=self.competitiondump.pk)), 0)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(len(CompetitionDump.objects.filter(pk=self.competitiondump.pk)), 0)
 
     def test_can_delete_competition_dump_with_admin(self):
         some_admin = User.objects.create_user(username="some_admin", password="pass")
@@ -244,8 +244,8 @@ class CompetitionDumpDeleteTests(CompetitionTest):
         self.competition.save()
         resp = self.client.delete(reverse("competitions:delete_dump", kwargs={"pk": self.competitiondump.pk}))
 
-        self.assertEquals(resp.status_code, 302)
-        self.assertEquals(len(CompetitionDump.objects.filter(pk=self.competitiondump.pk)), 0)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(len(CompetitionDump.objects.filter(pk=self.competitiondump.pk)), 0)
 
 
 class CompetitionEditPermissionsTests(CompetitionTest):
@@ -254,13 +254,13 @@ class CompetitionEditPermissionsTests(CompetitionTest):
         self.client.login(username="participant", password="pass")
         resp = self.client.get(reverse("competitions:edit", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_can_view_edit_competition_with_ownership(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:edit", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_can_view_edit_competition_as_admin(self):
         some_admin = User.objects.create_user(username="some_admin", password="pass")
@@ -269,13 +269,13 @@ class CompetitionEditPermissionsTests(CompetitionTest):
         self.competition.save()
         resp = self.client.get(reverse("competitions:edit", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_cant_edit_competition_if_you_dont_own_it(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.post(reverse("competitions:edit", kwargs={"pk": self.competition.pk}))
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
     def test_can_edit_competition_with_ownership(self):
         self.client.login(username="organizer", password="pass")

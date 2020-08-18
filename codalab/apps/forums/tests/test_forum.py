@@ -28,6 +28,6 @@ class ForumTests(TestCase):
         # legacy state (before forum post save)
         self.competition.forum.delete()
         resp = self.client.get(reverse("competitions:view", kwargs={"pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         updated_competition = Competition.objects.get(pk=self.competition.pk)
         self.assertTrue(updated_competition.forum)

@@ -2,7 +2,6 @@
 Defines deployment commands.
 """
 
-import datetime
 import logging
 import logging.config
 import os
@@ -14,7 +13,7 @@ import pwd
 
 sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
-from StringIO import StringIO
+from io import StringIO
 from fabric.api import (cd,
                         env,
                         execute,
@@ -31,8 +30,6 @@ from fabric.api import (cd,
                         shell_env,
                         sudo)
 from fabric.contrib.files import exists
-from fabric.network import ssh
-from fabric.utils import fastprint
 from codalabtools.deploy import DeploymentConfig, Deployment
 
 logger = logging.getLogger('codalabtools')
@@ -53,10 +50,10 @@ def config(label):
     label: Label identifying the desired setup (e.g., prod, test, etc.)
     """
     env.cfg_label = label
-    print "Deployment label is:", env.cfg_label
-    print "Loading configuration from:", env.cfg_path
+    print("Deployment label is:", env.cfg_label)
+    print("Loading configuration from:", env.cfg_path)
     configuration = DeploymentConfig(label, env.cfg_path)
-    print "Configuring logger..."
+    print("Configuring logger...")
     logging.config.dictConfig(configuration.getLoggerDictConfig())
     logger.info("Loaded configuration from file: %s", configuration.getFilename())
     env.roledefs = {'web': configuration.getWebHostnames()}
@@ -72,7 +69,7 @@ def config(label):
     env.django_configuration = configuration.getDjangoConfiguration()  # Prod or Test
     env.config_http_port = '80'
     env.config_server_name = "{0}.cloudapp.net".format(configuration.getServiceName())
-    print "Deployment configuration is for:", env.config_server_name
+    print("Deployment configuration is for:", env.config_server_name)
 
     env.configuration = True
     env.SHELL_ENV = {}
@@ -341,7 +338,7 @@ def maintenance(mode):
     """
     modes = {'begin': '1', 'end': '0'}
     if mode not in modes:
-        print "Invalid mode. Valid values are 'begin' or 'end'"
+        print("Invalid mode. Valid values are 'begin' or 'end'")
         sys.exit(1)
 
     require('configuration')

@@ -23,9 +23,9 @@ class CompetitionDownloadTests(TestCase):
 
     def test_competition_download_returns_status_302_for_non_logged_in_user(self):
         resp = self.client.get(reverse("competitions:download", kwargs={"competition_pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 302)
 
     def test_competition_download_returns_status_403_for_non_admin(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(reverse("competitions:download", kwargs={"competition_pk": self.competition.pk}))
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)

@@ -48,7 +48,7 @@ def get_item(dictionary, key):
 
 @register.filter
 def get_by_name(dictionary, key):
-    return filter(lambda x: x['name'] == key, dictionary)
+    return [x for x in dictionary if x['name'] == key]
 
 
 @register.filter

@@ -1,4 +1,4 @@
-FROM python:2.7.17
+FROM python:3.8.3
 
 # For nodejs
 RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -

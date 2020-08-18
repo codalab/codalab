@@ -27,10 +27,10 @@ class HealthStatusTriggerTests(TestCase):
 
             self.client.get(reverse("health_status_check_thresholds"))
 
-            self.assertEquals(len(mail.outbox), 1)
+            self.assertEqual(len(mail.outbox), 1)
             self.assertIn("test@test.com", mail.outbox[0].recipients())
             self.assertIn("test2@test.com", mail.outbox[0].recipients())
-            self.assertEquals(mail.outbox[0].subject, "Codalab Warning: Jobs pending > 25!")
+            self.assertEqual(mail.outbox[0].subject, "Codalab Warning: Jobs pending > 25!")
 
     def test_health_status_triggers_when_a_job_takes_greater_than_10_minutes_to_process(self):
         with mock.patch('apps.health.views.get_health_metrics') as get_health_metrics_mock:
@@ -42,10 +42,10 @@ class HealthStatusTriggerTests(TestCase):
 
             self.client.get(reverse("health_status_check_thresholds"))
 
-            self.assertEquals(len(mail.outbox), 1)
+            self.assertEqual(len(mail.outbox), 1)
             self.assertIn("test@test.com", mail.outbox[0].recipients())
             self.assertIn("test2@test.com", mail.outbox[0].recipients())
-            self.assertEquals(mail.outbox[0].subject, "Codalab Warning: Many jobs taking > 10 minutes!")
+            self.assertEqual(mail.outbox[0].subject, "Codalab Warning: Many jobs taking > 10 minutes!")
 
     def test_health_status_trigger_emails_without_commas_works(self):
         self.health_settings.emails = "test_only_one@test.com"
@@ -60,5 +60,5 @@ class HealthStatusTriggerTests(TestCase):
 
             self.client.get(reverse("health_status_check_thresholds"))
 
-            self.assertEquals(len(mail.outbox), 1)
+            self.assertEqual(len(mail.outbox), 1)
             self.assertIn("test_only_one@test.com", mail.outbox[0].recipients())

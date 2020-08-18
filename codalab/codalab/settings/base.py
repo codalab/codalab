@@ -1,24 +1,17 @@
-import re
 import uuid
 
 from datetime import timedelta
 from distutils.util import strtobool
-from textwrap import dedent
 
 from configurations import importer
-from django.utils.text import slugify
+import importlib
 
 if not importer.installed:
     importer.install()
 
-from configurations import Settings
+from configurations import Configuration
 import os, sys
 from os.path import abspath, basename, dirname, join, normpath
-
-
-# Set UTF8 encoding everywhere
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 
 def _uuidpathext(filename, prefix):
@@ -27,7 +20,7 @@ def _uuidpathext(filename, prefix):
     return filepath
 
 
-class Base(Settings):
+class Base(Configuration):
     SETTINGS_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_APP_DIR = os.path.dirname(SETTINGS_DIR)
     PROJECT_DIR = os.path.dirname(PROJECT_APP_DIR)
@@ -36,7 +29,6 @@ class Base(Settings):
     DOMAIN_NAME = 'localhost'
     SERVER_NAME = 'localhost'
     DEBUG = os.environ.get('DEBUG', False)
-    TEMPLATE_DEBUG = DEBUG
     COMPILE_LESS = True  # is the less -> css already done or would you like less.js to compile it on render
     LOCAL_MATHJAX = False  # see prep_for_offline
     LOCAL_ACE_EDITOR = False  # see prep_for_offline
@@ -129,67 +121,73 @@ class Base(Settings):
     STATIC_URL = '/static/'
 
     # Additional locations of static files
-    STATICFILES_DIRS = (
+    STATICFILES_DIRS = [
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    )
+    ]
 
     # List of finder classes that know how to find static files in
     # various locations.
-    STATICFILES_FINDERS = (
+    STATICFILES_FINDERS = [
         'django.contrib.staticfiles.finders.AppDirectoriesFinder',
         'django.contrib.staticfiles.finders.FileSystemFinder',
         'compressor.finders.CompressorFinder',
-    )
+    ]
 
     # Make this unique, and don't share it with anybody.
     SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', "a-hidden-secret")
 
-    # List of callables that know how to import templates from various sources.
-    TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )
-
-    MIDDLEWARE_CLASSES = (
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',
         "django_switchuser.middleware.SuStateMiddleware",
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
         'apps.web.middleware.SingleCompetitionMiddleware',
         'django.middleware.common.CommonMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.middleware.csrf.CsrfViewMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
-    )
+    ]
 
     ROOT_URLCONF = 'codalab.urls'
 
     # Python dotted path to the WSGI application used by Django's runserver.
     WSGI_APPLICATION = 'codalab.wsgi.application'
 
-    TEMPLATE_DIRS = (
-        # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-        # Always use forward slashes, even on Windows.
-        # Don't forget to use absolute paths, not relative paths.
-        os.path.join(PROJECT_DIR, 'templates'),
-    )
+    TEMPLATES = [
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'APP_DIRS': True,
+            'DIRS': [
+                os.path.join(PROJECT_DIR, 'templates')
+            ],
+            'OPTIONS': {
+                'context_processors': [
+                    'django.contrib.auth.context_processors.auth',
+                    'django.template.context_processors.debug',
+                    'django.template.context_processors.i18n',
+                    'django.template.context_processors.media',
+                    'django.template.context_processors.static',
+                    'django.template.context_processors.tz',
+                    'django.contrib.messages.context_processors.messages',
+                    "codalab.context_processors.app_version_proc",
+                    'django.template.context_processors.request',
+                    "codalab.context_processors.common_settings",
+                    "django_switchuser.context_processors.su_state",
+                ],
+                'debug': DEBUG
+            }
+        },
+    ]
 
-    TEMPLATE_CONTEXT_PROCESSORS = Settings.TEMPLATE_CONTEXT_PROCESSORS + (
-        "django_switchuser.context_processors.su_state",
-        "allauth.account.context_processors.account",
-        "allauth.socialaccount.context_processors.socialaccount",
-        "codalab.context_processors.app_version_proc",
-        "django.core.context_processors.request",
-        "codalab.context_processors.common_settings",
-    )
-
-    AUTHENTICATION_BACKENDS = (
+    AUTHENTICATION_BACKENDS = [
         "django.contrib.auth.backends.ModelBackend",
         "allauth.account.auth_backends.AuthenticationBackend",
         'guardian.backends.ObjectPermissionBackend',
-    )
+    ]
 
-    INSTALLED_APPS = (
+    INSTALLED_APPS = [
         # Standard django apps
         'django.contrib.auth',
         'django.contrib.contenttypes',
@@ -208,9 +206,7 @@ class Base(Settings):
         'mptt',
 
         # TODO: Document the need for these
-        'django_config_gen',
         'compressor',
-        'django_js_reverse',
         'guardian',
         'captcha',
         'bootstrapform',
@@ -218,9 +214,6 @@ class Base(Settings):
         # Storage API
         'storages',
         's3direct',
-
-        # Migration app
-        'south',
 
         # Django Nose !!Important!! This needs to come after South.
         'django_nose',
@@ -257,11 +250,11 @@ class Base(Settings):
 
         # Lockout
         'pin_passcode',
-    )
+    ]
 
-    ACCOUNT_ADAPTER = ("apps.authenz.adapter.CodalabAccountAdapter")
+    ACCOUNT_ADAPTER = "apps.authenz.adapter.CodalabAccountAdapter"
 
-    OPTIONAL_APPS = tuple()
+    OPTIONAL_APPS = list()
     INTERNAL_IPS = []
 
     OAUTH2_PROVIDER = {
@@ -283,20 +276,17 @@ class Base(Settings):
     # GOOGLE_ANALYTICS_PROPERTY_ID = 'UA-42847758-2'
 
     # Compress Configuration
-    COMPRESS_PRECOMPILERS = (
+    COMPRESS_PRECOMPILERS = [
         ('text/less', 'lessc {infile} {outfile}'),
         ('text/typescript', 'tsc {infile} --out {outfile}'),
-    )
+    ]
 
     REST_FRAMEWORK = {
-        'DEFAULT_RENDERER_CLASSES': (
+        'DEFAULT_RENDERER_CLASSES': [
             'rest_framework.renderers.JSONRenderer',
-        ),
+        ],
     }
 
-    SOUTH_MIGRATION_MODULES = {
-        'captcha': 'captcha.south_migrations',
-    }
 
     BUNDLE_SERVICE_URL = ""
 
@@ -366,7 +356,7 @@ class Base(Settings):
     DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
 
     # S3 from AWS
-    USE_AWS = DEFAULT_FILE_STORAGE == 'storages.backends.s3boto.S3BotoStorage'
+    USE_AWS = DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage'
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
@@ -381,6 +371,12 @@ class Base(Settings):
     )
     if isinstance(AWS_QUERYSTRING_AUTH, str) and 'false' in AWS_QUERYSTRING_AUTH.lower():
         AWS_QUERYSTRING_AUTH = False  # Was set to string, convert to bool
+
+    # Defaults to virtual because AWS recently deprecated 'path' style addressing. Boto3 required for virtual to have an effect.
+    AWS_S3_ADDRESSING_STYLE = os.environ.get('AWS_S3_ADDRESSING_STYLE', 'virtual')
+
+    # TODO: We will need to explicitly set this eventually. When set to None publicly uploaded files like images are not viewable. (Access Denied from AWS)
+    # AWS_DEFAULT_ACL = None
 
     # Azure
     AZURE_ACCOUNT_NAME = os.environ.get('AZURE_ACCOUNT_NAME')
@@ -410,6 +406,10 @@ class Base(Settings):
             'allowed': ['application/zip', 'application/octet-stream', 'application/x-zip-compressed']
         }
     }
+
+    # Default to {1}.{0} for `virtual` style addressing versus path. Path was deprecated by AWS. Use 'https://{0}/{1}' for path.
+    # first arg (0) is host, second arg (1) is bucket name.
+    S3DIRECT_URL_STRUCTURE = os.environ.get('S3DIRECT_URL_STRUCTURE', 'https://{1}.{0}')
 
 
     # =========================================================================
@@ -667,13 +667,13 @@ class Base(Settings):
 class DevBase(Base):
 
     if os.environ.get('DEBUG', False):
-        OPTIONAL_APPS = (
+        OPTIONAL_APPS = [
             'debug_toolbar',
-        )
+        ]
         ACCOUNT_EMAIL_VERIFICATION = None
-        EXTRA_MIDDLEWARE_CLASSES = (
+        EXTRA_MIDDLEWARE_CLASSES = [
             'debug_toolbar.middleware.DebugToolbarMiddleware',
-        )
+        ]
 
         DEBUG_TOOLBAR_CONFIG = {
             'SHOW_TEMPLATE_CONTEXT': True,
@@ -682,9 +682,9 @@ class DevBase(Base):
         }
 
         if os.environ.get('PIN_PASSCODE_ENABLED', False):
-            EXTRA_MIDDLEWARE_CLASSES += ('pin_passcode.middleware.PinPasscodeMiddleware',)
+            EXTRA_MIDDLEWARE_CLASSES += ['pin_passcode.middleware.PinPasscodeMiddleware',]
             PIN_PASSCODE_PIN = os.environ.get('PIN_PASSCODE_PIN', 1234)
-            PIN_PASSCODE_IP_WHITELIST = ('127.0.0.1', 'localhost',)
+            PIN_PASSCODE_IP_WHITELIST = ['127.0.0.1', 'localhost',]
 
         # Increase amount of logging output in Dev mode.
         # for logger_name in ('codalab', 'apps'):

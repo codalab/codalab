@@ -182,7 +182,7 @@ def update_job_status_task(job_id, args):
     info_json = None
     if 'info' in args:
         info_json = json.dumps(args['info'])
-    with transaction.commit_on_success():
+    with transaction.atomic():
         job = Job.objects.select_for_update().get(pk=job_id)
         if job.can_transition_to(status):
             job.status = status

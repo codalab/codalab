@@ -1,7 +1,7 @@
-from base import DevBase
+from .base import DevBase
 
 
-class Dev(DevBase):
+class Test(DevBase):
     """This is needed to run circleci, it should be copied to local.py"""
     ENABLE_COMPETITIONS = True
     ENABLE_WORKSHEETS = False

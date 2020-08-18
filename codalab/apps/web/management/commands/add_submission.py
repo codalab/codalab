@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from apps.web.models import Competition, CompetitionPhase, CompetitionParticipant, CompetitionSubmission
 from django.contrib.auth import get_user_model
 User = get_user_model()
-from optparse import make_option
 
 from django.core.files.base import File
 
@@ -10,24 +9,22 @@ from django.core.files.base import File
 class Command(BaseCommand):
     help = "Creates a submission for a participant"
 
-    option_list = BaseCommand.option_list + (
-        make_option('--email',
+    def add_arguments(self, parser):
+        parser.add_argument('--email',
                     dest='email',
                     help="Email of the user"),
-        make_option('--competition',
+        parser.add_argument('--competition',
                     dest='competition',
                     default=None,
                     help="ID of the submission"),
-        make_option('--phase',
+        parser.add_argument('--phase',
                     dest='phase',
                     default=None,
                     help="ID of the competition phase"),
-        make_option('--submission',
+        parser.add_argument('--submission',
                     dest='submission',
                     default=None,
                     help="Path to the submission file"),
-
-    )
 
     def handle(self, *args, **options):
         competition_id = options['competition']
@@ -36,10 +33,10 @@ class Command(BaseCommand):
         competition = None
         phase = None
         if not options['email']:
-            print " ERROR ... Email Required ... "
+            print(" ERROR ... Email Required ... ")
             exit(1)
         if not submission:
-            print " ERROR ... Submission File Required ... "
+            print(" ERROR ... Submission File Required ... ")
             exit(1)
 
         user = User.objects.get(email=options['email'])
@@ -52,29 +49,29 @@ class Command(BaseCommand):
                 except Competition.DoesNotExist:
                     pass
             else:
-                print "Competition/Phase not specified or not valid:\n"
+                print("Competition/Phase not specified or not valid:\n")
 
             clist = CompetitionPhase.objects.order_by('competition__pk').all()
             if not clist:
-                print " ... There are no competitions ..."
+                print(" ... There are no competitions ...")
                 exit(1)
             sel = []
             i = 0
             for c in clist:
                 sel.append((c.competition, c))
                 i = i + 1
-                print "%d) %s %s" % (i, c.competition, c)
+                print("%d) %s %s" % (i, c.competition, c))
             try:
-                inp = int(raw_input("\n Enter number --> "))
+                inp = int(input("\n Enter number --> "))
                 idx = inp - 1
                 competition = sel[idx][0]
                 phase = sel[idx][1]
             except ValueError:
-                print " ... Bad Input ... "
+                print(" ... Bad Input ... ")
                 competition_id = None
                 continue
             except Exception as e:
-                print e
+                print(e)
 
         part = CompetitionParticipant.objects.get(user=user,
                                                   competition=competition

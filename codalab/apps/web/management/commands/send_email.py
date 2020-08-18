@@ -1,10 +1,9 @@
 from datetime import timedelta
-from optparse import make_option
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.mail import EmailMultiAlternatives
-from django.template import Context, Template
+from django.template import Template
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
 
@@ -23,40 +22,40 @@ class Command(BaseCommand):
         $ python manage.py send_email --template=apps/web/templates/emails/notifications/participation_requested.html --subject "Hello World!"
         $ python manage.py send_email --template=moving_servers.txt --subject "Hello World!" --dry-run
     """
-    option_list = BaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             '--active-users', '-a',
             dest='only_active_users',
             action="store_false",
             default=True,
             help="Only message active participants + organizers"
         ),
-        make_option(
+        parser.add_argument(
             '--dry-run', '-d',
             dest='dry_run',
             action="store_true",
             default=False,
             help="Do a dry run first"
         ),
-        make_option(
+        parser.add_argument(
             '--subject', '-s',
             dest='subject',
             action="store",
             help="Email subject",
         ),
-        make_option(
+        parser.add_argument(
             '--template', '-t',
             dest='template',
             action="store",
             help="Template to use for email, it extends the base email template",
         ),
-        make_option(
+        parser.add_argument(
             '--email_to', '-e',
             dest='email_to',
             action="store",
             help="Overrides other behaviors (like 'send only to active users') and sends to only the specified email",
         )
-    )
 
     def handle(self, *args, **options):
         assert options['template'], "Template argument is required"
@@ -106,7 +105,8 @@ class Command(BaseCommand):
         # First render HTML version
         template_content = open(template_file, 'r').read()
         template = Template(template_content)
-        context = Context(context)
+
+        context = context
         html_content = template.render(context)
 
         # Then the text version, replacing base.html with base.txt

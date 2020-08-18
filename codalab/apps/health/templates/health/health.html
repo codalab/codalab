@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block head_title %}Health Status{% endblock head_title %}
 {% block page_title %}Health Status{% endblock page_title %}
 
@@ -203,5 +205,5 @@
     {% endblock %}
 </script>
 {% block extra_scripts %}
-    <script src="{{ STATIC_URL }}js/vendor/gauge.min.js"></script>
+    <script src="{% static "js/vendor/gauge.min.js" %}"></script>
 {% endblock %}

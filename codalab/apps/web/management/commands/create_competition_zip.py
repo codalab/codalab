@@ -7,8 +7,6 @@ import string
 import tempfile
 import yaml
 
-from optparse import make_option
-
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
@@ -17,39 +15,38 @@ User = get_user_model()
 class Command(BaseCommand):
     help = """Creates a fake competition zip file for easy uploading and testing. \n Please see create_competition_zip.py for more options"""
 
-    option_list = BaseCommand.option_list + (
-        make_option('--numphases', '-p',
+    def add_arguments(self, parser):
+        parser.add_argument('--numphases', '-p',
                     dest='numphases',
                     default=5,
-                    type="int",
+                    type=int,
                     help="Number of phases to create"
                     ),
-        make_option('--phaselength', '-l',
+        parser.add_argument('--phaselength', '-l',
                     dest='phaselength',
-                    type='int',
+                    type=int,
                     default=10,
                     help="How many minutes would you like phase to last"
                     ),
-        make_option('--delete', '-d',
+        parser.add_argument('--delete', '-d',
                     dest='delete',
                     action="store_false",
                     default=True,
                     help="Don't delete the temp files"
                     ),
-        make_option('--automigrate', '-a',
+        parser.add_argument('--automigrate', '-a',
                     dest='auto_migrate',
                     action="store_true",
                     default=False,
                     help="Enable auto migration between phases"
                     )
-    )
 
     def handle(self, *args, **options):
-        print " ----- "
-        print "Creating a competition zip in project root. The competition is based on the hello world example"
-        print "https://github.com/Tivix/competition-examples/tree/master/hello_world/competition"
-        print "this command is mainly used quick dev test of full upload competition flow and phases"
-        print " ----- "
+        print(" ----- ")
+        print("Creating a competition zip in project root. The competition is based on the hello world example")
+        print("https://github.com/Tivix/competition-examples/tree/master/hello_world/competition")
+        print("this command is mainly used quick dev test of full upload competition flow and phases")
+        print(" ----- ")
 
         #please set these to whatever defaults you would like to load
         yaml_file_url = "https://raw.githubusercontent.com/Tivix/competition-examples/master/hello_world/competition/competition.yaml"
@@ -72,20 +69,20 @@ class Command(BaseCommand):
         auto_migrate = options['auto_migrate']
 
         if numphases < 1:
-            print "you must have at least one phase "
+            print("you must have at least one phase ")
             return
 
         phasedates = []
         now = datetime.datetime.utcnow()
         delta = datetime.timedelta(minutes=phaselength)
         next = now
-        for i in xrange(0, numphases):
+        for i in range(0, numphases):
             phasedates.append(next)
             next = next + delta
 
         #get files and make edits
         yaml_file = requests.get(yaml_file_url)
-        comp_yaml_obj = yaml.load(yaml_file.content)
+        comp_yaml_obj = yaml.full_load(yaml_file.content)
 
         #put our date changed phases and with random name
         tz_now = datetime.datetime.now()
@@ -93,7 +90,7 @@ class Command(BaseCommand):
         comp_yaml_obj['force_submission_to_leaderboard'] = True
 
         comp_yaml_obj['phases'] = {}
-        for i in xrange(0, numphases):
+        for i in range(0, numphases):
             random_name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(6))
             phase_name = "Phase %s %s" % (i, random_name)
             phase = {
@@ -190,8 +187,8 @@ class Command(BaseCommand):
             root_dir=root_dir,
         )
 
-        print "sample competition complete"
-        print output_file
+        print("sample competition complete")
+        print(output_file)
 
         if temp_dir is not None and delete:
             # Try cleaning-up temporary directory
@@ -199,5 +196,5 @@ class Command(BaseCommand):
                 os.chdir(PROJECT_ROOT)
                 shutil.rmtree(temp_dir)
             except:
-                print "there was a problem cleaning up the temp folder."
-                print temp_dir
+                print("there was a problem cleaning up the temp folder.")
+                print(temp_dir)

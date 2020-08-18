@@ -1,7 +1,5 @@
 {% extends "forums/base_forum.html" %}
 
-{% load url from future %}
-
 {% block content %}
     <h2 class="thread_title"> > {{ thread.title }}</h2>
     {% for post in ordered_posts %}

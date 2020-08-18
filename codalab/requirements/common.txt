@@ -1,70 +1,67 @@
-Django==1.6.11
+Django==1.11.29
 alembic==0.6.7
 anyjson==0.3.3
 argparse
 # azure==0.7.1
 closure_linter
-django-analytical==0.15.0
-django-appconf==0.6
-django-compressor==1.3
-django-config-gen==1.0.8
-# django-configurations
-django-configurations==0.8
-django-debug-toolbar==1.3.0
-sqlparse==0.1.19
+django-analytical==2.0.0
+django-appconf==1.0
+django-compressor==2.2
+django-configurations==2.0
+django-debug-toolbar==2.2
+sqlparse==0.2.0
 django-debug-panel==0.8.1
-django-extensions==1.5.7
+django-extensions==1.7.6
 django-extra-views==0.6.3
-django-filter==0.7
-django-guardian==1.1.1
-django-haystack==2.4.0
+django-filter==1.1.0
+django-guardian==1.4.9
+django-haystack==2.8.1
 django-js-reverse>=0.2.0
-django-mptt==0.5.5
-django-nose==1.4.1
-django-oauth-toolkit==0.6.1
-#django-storages==1.1.8 # Replaced by storages-redux.. need to uninstall storages..
-django-storages-redux==1.3.2
-django-tinymce==2.0.5
-djangorestframework==2.3.6
+django-mptt==0.9.1
+django-nose==1.4.6
+django-oauth-toolkit==0.11.0
+django-storages==1.9.1
+django-tinymce==2.7.1
+djangorestframework==3.8.2
 mock==1.0.1
-oauthlib==0.6.1
-psutil==2.1.1
+oauthlib==1.1.2
+psutil==5.7.2
 python-openid==2.2.5
 python-ptrace==0.6.5
-pytz==2013b
-PyYAML==3.10
+pytz==2015.7
+PyYAML==5.1
 requests-oauthlib==0.3.2
-requests==1.2.3
+requests==2.24.0
 six==1.10.0
-South==1.0.2
 SQLAlchemy==0.9.7
 watchdog==0.8.1
-wsgiref==0.1.2
-django-simple-captcha==0.4.5
-django-bootstrap-form==3.2
+#wsgiref==0.1.2
+django-simple-captcha==0.5.12
+django-bootstrap-form==3.4
 newrelic==2.54.0.41
 pylibmc==1.5.2
 
-celery==3.1.26.post2
-boto==2.45.0
+celery==4.4.6
+boto3==1.14.22
 # We need a modified s3direct 0.4.1 which can use AWS_S3_HOST instead of forcing aws
 git+https://github.com/codalab/django-s3direct.git@feature/allow-different-endpoint
 
 #pyrabbit==1.1.0
 git+https://github.com/bkjones/pyrabbit.git@e8a9f74ed5c6bba958994fb9a72c396e6a99ea0f
 
-gunicorn==19.7.0
+gunicorn==20.0.4
 #gevent==1.2.2
 
 #Extras added
-git+https://github.com/Tthomas63/django-switchuser.git@eb8b71622201f66ef1862a4976c12ef83145b5e8
+git+https://github.com/Tthomas63/django-switchuser.git@convert-python3
 Sphinx==1.4.1
 
-# django-allauth==0.11.1
-# Patched a vulnerability in allauth. The login view redirects to the next parameter in the url after successful form validation. Before, there was 
+# Patched a vulnerability in allauth. The login view redirects to the next parameter in the url after successful form validation. Before, there was
 # minimal validation, so it could be manually changed in the browser to any host. Now, it is checked against django.utils.is_safe_url before the 
 # redirect occurs.
-git+https://github.com/gibsonbailey/django-allauth.git@codalab
+# 7/16/2020: I would think the above vulnerability would be patched in later versions that we are using now. Leaving in-case we need to reference
+# git+https://github.com/gibsonbailey/django-allauth.git@codalab
+django-allauth==0.35.0
 
 # Added for python sdk
 git+https://github.com/FlavioAlexander/azure-sdk-for-python.git@legacy
@@ -76,12 +73,13 @@ psycopg2==2.8.3
 django-pin-passcode==0.1.9
 
 # Adding test libraries here for simplicity sake
-pytest==3.0.6
-pytest-django==2.9.1
-pytest-testmon==0.9.6
-pytest-watch==4.1.0
+pytest==5.4.3
+pytest-django==3.9.0
+pytest-testmon==1.0.2
+# I haven't found any uses of pytest-watch, but it seems like something that should be leveraged when I looked into it.
+pytest-watch==4.2.0
 pytest-env==0.6.2
 
 lxml==4.1.1
 
-certifi==2019.3.9
+certifi==2020.6.20

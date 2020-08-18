@@ -28,7 +28,7 @@ else:
 
 def clean_html_script(html_content):
     # Finds <script and everything between /script>. No scripts for you.
-    return re.sub('(<script)(\s*?\S*?)*?(/script>)', "", unicode(html_content))
+    return re.sub('(<script)(\s*?\S*?)*?(/script>)', "", str(html_content))
 
 
 def docker_image_clean(image_name):
@@ -50,10 +50,10 @@ def check_bad_scores(score_dict):
         for subm in score['scores']:
             for i in range(len(subm)):
                 if type(subm[i]) is dict:
-                    for k, v in subm[i].iteritems():
+                    for k, v in subm[i].items():
                         if k == 'values':
                             for result in v:
-                                for result_key, result_value in result.iteritems():
+                                for result_key, result_value in result.items():
                                     if result_value == 'NaN' or result_value == '-':
                                         bad_score_count += 1
                                         bad_scores.append(result)
@@ -118,3 +118,10 @@ def inheritors(klass):
                 subclasses.add(child)
                 work.append(child)
     return subclasses
+
+def get_object_base_url(object, attr):
+    if settings.USE_AWS:
+        # Boto3 does not like receiving an empty path.
+        return getattr(object, attr).storage.url(' ').replace("%20", "")
+    else:
+        return getattr(object, attr).storage.url('')

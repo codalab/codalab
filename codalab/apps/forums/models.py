@@ -66,7 +66,7 @@ class Thread(models.Model):
     def notify_user(self, user, post=None):
         if user.allow_forum_notifications:
             send_mail(
-                context_data={
+                context={
                     'thread': self,
                     'user': user,
                     'new_post': self.posts.last() if post is None else post

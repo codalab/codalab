@@ -15,10 +15,10 @@ from django.conf import settings as django_settings
 try:
     from codalab.settings import Dev
     django_settings.configure(Dev)
-except ImproperlyConfigured, e:
-    print 'ERROR: Configuration issue:'
-    print '\t', e
-    print ''
+except ImproperlyConfigured as e:
+    print('ERROR: Configuration issue:')
+    print('\t', e)
+    print('')
 
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -179,14 +179,14 @@ def test_e2e():
     with hide('running', 'stdout', 'stderr', 'warnings', 'aborts'):
         _print("Running Selenium tests...")
         # insert selenium tests when we get them
-        print green("done")
+        print(green("done"))
 
 
 def test_django():
     with hide('running', 'stdout', 'stderr', 'warnings', 'aborts'):
         _print("Running Django tests...")
         local('python manage.py test --noinput', capture=True)
-        print green("done")
+        print(green("done"))
 
 
 # def test_lint():
@@ -200,10 +200,10 @@ def test_django():
 
 
 def test():
-    print "%" * 80
-    print " Running all tests..."
-    print "%" * 80
-    print ""
+    print("%" * 80)
+    print(" Running all tests...")
+    print("%" * 80)
+    print("")
 
     #test_lint()
     test_django()

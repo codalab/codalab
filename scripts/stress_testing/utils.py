@@ -16,6 +16,6 @@ def run_shell_script(script, print_output=False):
     ])
 
     if print_output:
-        print output
+        print(output)
 
     return output

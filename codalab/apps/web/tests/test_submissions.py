@@ -39,21 +39,21 @@ class CompetitionSubmissionAdminPageTests(TestCase):
     def test_submissions_view_as_admin_returns_200(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_submissions_view_as_owner_returns_200(self):
         self.client.login(username="other_admin", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_submissions_view_as_logged_in_non_owner_or_admin_returns_404(self):
         self.client.login(username="other", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_submissions_view_as_non_logged_in_returns_302(self):
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 302)
 
 
 class CompetitionSubmissionDeleteTests(TestCase):
@@ -88,12 +88,12 @@ class CompetitionSubmissionDeleteTests(TestCase):
     def test_delete_view_returns_404_if_not_competition_owner(self):
         self.client.login(username="other", password="pass")
         resp = self.client.post(reverse("competitions:submission_delete", kwargs={"pk": self.submission_1.pk}))
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_delete_view_returns_404_if_not_submission_owner(self):
         self.client.login(username="other", password="pass")
         resp = self.client.post(reverse("competitions:submission_delete", kwargs={"pk": self.submission_1.pk}))
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_delete_view_redirects_to_success_if_submission_owner(self):
         # There is currently no way for participants to delete their own submission, but I'll add this
@@ -106,11 +106,11 @@ class CompetitionSubmissionDeleteTests(TestCase):
         self.client.login(username="organizer", password="pass")
         resp = self.client.post(reverse("competitions:submission_delete", kwargs={"pk": self.submission_1.pk}))
         self.assertRedirects(resp, reverse("competitions:view", kwargs={"pk": self.competition.pk}))
-        self.assertEquals(0, len(CompetitionSubmission.objects.filter(pk=self.submission_1.pk)))
+        self.assertEqual(0, len(CompetitionSubmission.objects.filter(pk=self.submission_1.pk)))
 
     def test_delete_view_returns_302_if_not_logged_in(self):
         resp = self.client.post(reverse("competitions:submission_delete", kwargs={"pk": self.submission_1.pk}))
-        self.assertEquals(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 302)
 
     def test_failed_submissions_not_counted_when_saving_submissions(self):
         for _ in range(0, 3):
@@ -125,4 +125,4 @@ class CompetitionSubmissionDeleteTests(TestCase):
         failed_count = CompetitionSubmission.objects.filter(phase=self.phase_1,
                                                             participant=self.participant_1,
                                                             status__name=CompetitionSubmissionStatus.FAILED).count()
-        self.assertEquals(failed_count, 3)
+        self.assertEqual(failed_count, 3)

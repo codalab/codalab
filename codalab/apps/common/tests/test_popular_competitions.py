@@ -97,7 +97,7 @@ class PopularCompetitionsTests(TestCase):
             self.competition5.save()
 
         competitions = get_most_popular_competitions()
-        self.assertEquals(len(competitions), 0)
+        self.assertEqual(len(competitions), 0)
 
     def test_get_popular_competitions_returns_most_popular_competitions(self):
         '''
@@ -105,8 +105,8 @@ class PopularCompetitionsTests(TestCase):
         '''
         competitions = get_most_popular_competitions(min_participants=2, fill_in=False)
         # Should only return #1 and #2 because they have > 2 participants
-        self.assertEquals(len(competitions), 2)
+        self.assertEqual(len(competitions), 2)
 
         competitions = get_most_popular_competitions(min_participants=0, fill_in=False)
         # Should return all comps
-        self.assertEquals(len(competitions), 5)
+        self.assertEqual(len(competitions), 5)

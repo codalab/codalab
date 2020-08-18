@@ -8,7 +8,7 @@
 
     <title>Codalab</title>
 
-    <link type="image/x-icon" rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico">
+    <link type="image/x-icon" rel="shortcut icon" href="{% static "img/favicon.ico" %}">
 
     <!-- Semantic -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
@@ -151,7 +151,7 @@
 <div class="pusher">
     <div class="ui inverted vertical masthead center aligned segment">
         <div class="ui text container">
-            <img src="{{ STATIC_URL }}img/codalab-logo-onecolor-reverse.png">
+            <img src="{% static "img/codalab-logo-onecolor-reverse.png" %}">
             <h2>Accelerating reproducible computational research.</h2>
         </div>
     </div>

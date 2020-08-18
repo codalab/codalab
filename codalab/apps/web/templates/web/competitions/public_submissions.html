@@ -1,8 +1,10 @@
 {% extends "base.html" %}
-{% block extra_scripts %}
-    <script src="{{ STATIC_URL }}js/vendor/readmore.min.js"></script>
+{% load static %}
 
-    <script src="{{ STATIC_URL }}js/vendor/jquery.tablesorter.min.js"></script>
+{% block extra_scripts %}
+    <script src="{% static "js/vendor/readmore.min.js" %}"></script>
+
+    <script src="{% static "js/vendor/jquery.tablesorter.min.js" %}"></script>
 
     <style>
     #public_submission_table th b {

@@ -1,10 +1,9 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib.auth.decorators import login_required
 
 from apps.web import views
 
-partials_patterns = patterns(
-    '',
+partials_patterns = [
     url(r'^_competitions_managed$',
         login_required(views.MyCompetitionsManagedPartial.as_view()),
         name='my_competitions_managed'),
@@ -14,10 +13,9 @@ partials_patterns = patterns(
     url(r'^(?P<phase_id>\d+)/(?P<participant_id>\d+)/_submission_results',
         login_required(views.MySubmissionResultsPartial.as_view()),
         name='my_competition_submissions'),
-)
+]
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', views.my_index, name='competitions'),
     url(r'^competition/(?P<competition_id>\d+)/participants/',
         views.MyCompetitionParticipantView.as_view(),
@@ -44,4 +42,4 @@ urlpatterns = patterns(
 
     # User settings
     url(r'^settings/', views.UserSettingsView.as_view(), name='user_settings')
-)
+]

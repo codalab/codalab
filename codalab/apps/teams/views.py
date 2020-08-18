@@ -1,21 +1,25 @@
+import logging
+from apps.teams import forms
+from apps.teams.forms import OrganizerTeamForm, OrganizerTeamsCSVForm
+from apps.web.models import Competition, ParticipantStatus, CompetitionSubmission, get_current_phase
+from apps.web.views import LoginRequiredMixin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.http import Http404, QueryDict, HttpResponseForbidden, HttpResponse
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
-from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
+from django.views.generic import TemplateView, FormView, UpdateView, CreateView
 
-from apps.web.models import Competition, ParticipantStatus, CompetitionSubmission, get_current_phase
-from apps.web.views import LoginRequiredMixin
-
-from .models import Team, TeamStatus, TeamMembership, TeamMembershipStatus, get_user_requests, get_competition_teams, get_user_team, get_allowed_teams, get_team_pending_membership, get_competition_user_pending_teams, get_team_submissions_inf
-from apps.teams import forms
-from apps.teams.forms import OrganizerTeamForm, OrganizerTeamsCSVForm
-from django.views.generic import View, TemplateView, DetailView, ListView, FormView, UpdateView, CreateView, DeleteView
-from django.http import Http404, QueryDict, HttpResponseForbidden, HttpResponse
+from .models import Team, TeamStatus, TeamMembership, TeamMembershipStatus, get_user_requests, get_competition_teams, \
+    get_user_team, get_allowed_teams, get_team_pending_membership, get_competition_user_pending_teams, \
+    get_team_submissions_inf
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 class TeamDetailView(LoginRequiredMixin, TemplateView):
@@ -330,6 +334,8 @@ class CompetitionOrganizerTeams(FormView):
         return super(CompetitionOrganizerTeams, self).dispatch(*args, **kwargs)
 
     def get_form(self, form_class=None):
+        if not form_class:
+            form_class = self.form_class
         if self.kwargs.get('pk'):
             current_team = Team.objects.get(pk=self.kwargs['pk'])
             return form_class(instance=current_team, **self.get_form_kwargs())
@@ -378,7 +384,7 @@ def delete_organizer_team(request, team_pk, competition_pk):
                 if request.user not in comp.admins.all():
                     return HttpResponseForbidden(status=403)
 
-            print("Deleting team {0} from competition {1}".format(team_to_delete, comp))
+            logger.info("Deleting team {0} from competition {1}".format(team_to_delete, comp))
             team_to_delete.delete()
             return redirect('my_competition_participants', competition_id=comp.pk)
         except ObjectDoesNotExist:

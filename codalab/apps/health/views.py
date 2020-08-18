@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.utils.timezone import now
 
 from apps.web.models import CompetitionSubmission
 from .models import HealthSettings

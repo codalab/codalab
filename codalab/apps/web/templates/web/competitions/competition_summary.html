@@ -1,3 +1,5 @@
+{% load static %}
+
 {% if edit == "yes" %}
 	<div class="competition-preview panel">
 {% else %}
@@ -6,7 +8,7 @@
 		<div class="competition-summary">
 			<div class="large-12 columns">
 				<div class="large-1 competition-label columns">
-					<img src="{{ STATIC_URL }}foundation/img/challenge-small.png">
+					<img src="{% static "foundation/img/challenge-small.png" %}">
 				</div>
 				<div class="large-2 competition-image columns">
 					<img src="{{ MEDIA_URL }}{{ competition.image }}">

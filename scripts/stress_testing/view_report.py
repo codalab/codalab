@@ -2,8 +2,8 @@
 
 import csv
 import json
-import SimpleHTTPServer
-import SocketServer
+import http.server
+import socketserver
 import threading
 import time
 
@@ -11,7 +11,7 @@ from textwrap import dedent
 
 from os.path import exists
 
-from utils import run_shell_script
+from .utils import run_shell_script
 
 
 CSV_HEADERS = [
@@ -28,9 +28,9 @@ CSV_HEADERS = [
 
 
 def server_listener(port=8000):
-    Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-    httpd = SocketServer.TCPServer(("", port), Handler)
-    print "Serving at port", port
+    Handler = http.server.SimpleHTTPRequestHandler
+    httpd = socketserver.TCPServer(("", port), Handler)
+    print("Serving at port", port)
     httpd.serve_forever()
 
 
@@ -89,7 +89,7 @@ def add_report(report_dict):
     with open('report.csv', 'a+') as report_file:
         writer = csv.DictWriter(report_file, fieldnames=CSV_HEADERS)
         writer.writerow(report_dict)
-    print "Added report for submission={}".format(report_dict['id'])
+    print("Added report for submission={}".format(report_dict['id']))
 
 
 if __name__ == "__main__":

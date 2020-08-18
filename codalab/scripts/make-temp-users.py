@@ -30,7 +30,7 @@ for i in range(1, 11):
     email = "%s@live.com" % name
     password = "abc123"
 
-    print "Creating user %s with email %s and password %s" % (name, email, password)
+    print("Creating user %s with email %s and password %s" % (name, email, password))
 
     new_user, _ = User.objects.get_or_create(email=email, username=name)
     new_user.set_password(password)

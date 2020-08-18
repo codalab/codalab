@@ -112,19 +112,19 @@ for phase in CompetitionPhase.objects.filter(competition=brats2012):
     # but in reality they may be different.
     prog_file_path = os.path.join(root_dir, "media", "brats", "program.zip")
     if os.path.exists(prog_file_path):
-        print "Setting program for phase: %s" % phase.label
+        print("Setting program for phase: %s" % phase.label)
         phase.scoring_program = File(open(prog_file_path, 'rb'))
         phase.save()
     else:
-        print "No program file set for phase: %s" % phase.label
+        print("No program file set for phase: %s" % phase.label)
     reference_file_path = os.path.join(
         root_dir, "media", "brats", "testing-ref.zip")
     if os.path.exists(reference_file_path):
-        print "Setting reference file for phase: %s" % phase.label
+        print("Setting reference file for phase: %s" % phase.label)
         phase.reference_data = File(open(reference_file_path, 'rb'))
         phase.save()
     else:
-        print "No reference file set for phase: %s" % phase.label
+        print("No reference file set for phase: %s" % phase.label)
 
 # Score Definitions
 brats_leaderboard_group_defs = {
@@ -205,7 +205,7 @@ brats_leaderboard_defs = [
                                                                            'SyntheticDiceCore', 'SyntheticSensitivityCore', 'SyntheticSpecificityCore')}})]
 
 brats_groups = {}
-for (key, vals) in brats_leaderboard_group_defs.iteritems():
+for (key, vals) in brats_leaderboard_group_defs.items():
     rg, cr = SubmissionResultGroup.objects.get_or_create(
         competition=brats2012,
         key=key,
@@ -281,7 +281,7 @@ statuses = ParticipantStatus.objects.all()
 
 # Add participants to the competition with random statuses
 for status, participant in participants:
-    print "Adding %s to competition %s with status %s" % (participant, brats2012, status)
+    print("Adding %s to competition %s with status %s" % (participant, brats2012, status))
     resulting_participant, created = CompetitionParticipant.objects.get_or_create(
         user=participant, competition=brats2012, defaults={'status': status})
 #
@@ -321,8 +321,8 @@ for phase in [1, 2, 3]:
         start_date=phase_start, max_submissions=4)
 
 # Participants for the competition
-participants = [User.objects.get(username="guest%d" % random.choice(range(1, 10)))
-                for i in range(random.choice(range(1, 5)))]
+participants = [User.objects.get(username="guest%d" % random.choice(list(range(1, 10))))
+                for i in range(random.choice(list(range(1, 5))))]
 # print participants
 
 # Participant statuses, if they haven't been created before

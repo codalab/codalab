@@ -1,10 +1,12 @@
 import datetime
+import requests
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 from apps.web.models import (Competition,
                              CompetitionParticipant,
@@ -15,6 +17,9 @@ from apps.web.models import (Competition,
 
 User = get_user_model()
 
+
+# Note: Previously seems that Django returned a 200 on redirect. Now if we redirect to AWS when using USE_AWS
+# (apps.web.views, line 1225) we get a 302 and have to goto the response's url to make a request to AWS.
 
 class CompetitionSubmissionDownloadTests(TestCase):
     def setUp(self):
@@ -48,7 +53,7 @@ class CompetitionSubmissionDownloadTests(TestCase):
             status=self.submission_finished_status,
             is_public=False,
             submitted_at=datetime.datetime.now() - datetime.timedelta(days=29),
-            stdout_file=SimpleUploadedFile(name="test.txt", content="test std out")
+            stdout_file=SimpleUploadedFile(name="test.txt", content="test std out".encode('utf-8'))
         )
 
         self.url = reverse("my_competition_output", kwargs={"submission_id": self.submission_1.pk,
@@ -56,29 +61,42 @@ class CompetitionSubmissionDownloadTests(TestCase):
 
         self.client = Client()
 
+        self.expected_return_value = 302 if settings.USE_AWS else 200
+
     def test_submission_info_download_when_submitter_returns_200(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+
+        self.assertEqual(resp.status_code, self.expected_return_value)
 
     def test_submission_info_download_when_admin_returns_200(self):
         self.client.login(username="organizer", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+
+        self.assertEqual(resp.status_code, self.expected_return_value)
 
     def test_submission_info_download_when_non_admin_and_non_submitter_returns_404(self):
         self.client.login(username="other", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_submission_info_download_when_non_logged_in_returns_404(self):
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_submission_info_download_returns_proper_data(self):
         self.client.login(username="participant", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.content, self.submission_1.stdout_file.read())
+
+        self.assertEqual(resp.status_code, self.expected_return_value)
+
+        if self.expected_return_value == 302:
+            redirect_resp = requests.get(resp.url)
+
+            self.assertEqual(redirect_resp.status_code, 200)
+            self.assertEqual(redirect_resp.content, self.submission_1.stdout_file.read())
+        else:
+            self.assertEqual(resp.content, self.submission_1.stdout_file.read())
 
     # def test_submission_download_public_requires_participation_access(self):
     #     self.submission_1.is_public = True
@@ -102,7 +120,8 @@ class CompetitionSubmissionDownloadTests(TestCase):
         self.submission_1.save()
         self.client.login(username="other", password="pass")
         resp = self.client.get(self.url)
-        self.assertEquals(resp.status_code, 200)
+
+        self.assertEqual(resp.status_code, self.expected_return_value)
 
     def test_submission_deleted_then_re_evaluated_does_not_make_output_corrupted(self):
         self.submission_1.delete()
@@ -113,7 +132,7 @@ class CompetitionSubmissionDownloadTests(TestCase):
             status=self.submission_finished_status,
             is_public=False,
             submitted_at=datetime.datetime.now() - datetime.timedelta(days=29),
-            stdout_file=SimpleUploadedFile(name="test.txt", content="new stdout")
+            stdout_file=SimpleUploadedFile(name="test.txt", content="new stdout".encode('utf-8'))
         )
         new_url = reverse(
             "my_competition_output",
@@ -124,5 +143,13 @@ class CompetitionSubmissionDownloadTests(TestCase):
         )
         self.client.login(username="participant", password="pass")
         resp = self.client.get(new_url)
-        self.assertEquals(resp.status_code, 200)
-        self.assertEquals(resp.content, "new stdout")
+
+        self.assertEqual(resp.status_code, self.expected_return_value)
+
+        if self.expected_return_value == 302:
+            redirect_resp = requests.get(resp.url)
+
+            self.assertEqual(redirect_resp.status_code, 200)
+            self.assertEqual(redirect_resp.content, b"new stdout")
+        else:
+            self.assertEqual(resp.content, b"new stdout")

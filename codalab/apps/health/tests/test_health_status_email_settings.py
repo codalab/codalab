@@ -18,20 +18,20 @@ class HealthStatusSettingsTests(TestCase):
 
     def test_health_email_settings_returns_404_for_logged_in_user(self):
         resp = self.client.post(reverse("health_status_email_settings"))
-        self.assertEquals(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 302)
 
     def test_health_email_settings_returns_404_for_non_admin(self):
         self.client.login(username="regular", password="pass")
         resp = self.client.post(reverse("health_status_email_settings"))
-        self.assertEquals(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 404)
 
     def test_health_email_settings_returns_200_for_admin(self):
         self.client.login(username="admin", password="pass")
         resp = self.client.post(reverse("health_status_email_settings"))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_health_email_settings_actually_changes_environment_variable(self):
         self.client.login(username="admin", password="pass")
         emails = "test@test.com,test2@test.com"
         resp = self.client.post(reverse("health_status_email_settings"), {"emails": emails})
-        self.assertEquals(HealthSettings.objects.get_or_create(pk=1)[0].emails, emails)
+        self.assertEqual(HealthSettings.objects.get_or_create(pk=1)[0].emails, emails)

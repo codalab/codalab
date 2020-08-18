@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load codalab_tags %}
 {% load tz %}
+{% load static %}
 
 {% block head_title %}New Request{% endblock head_title %}
 {% block page_title %}New Request{% endblock page_title %}
@@ -11,7 +12,7 @@
     {{ form.media }}
 {% endblock extra_headers %}
 {% block extra_scripts %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}teams/teams.css">
+    <link rel="stylesheet" href="{% static "teams/teams.css" %}">
 {% endblock extra_scripts %}
 
 {% block content %}
@@ -68,8 +69,8 @@
 {% endblock content %}
 
 {% block jsincludes %}
-    <script src="{{ STATIC_URL }}js/vendor/django-formset.js"></script>
-    <script src="{{ STATIC_URL }}js/vendor/jquery.datetimepicker.js"></script>
+    <script src="{% static "js/vendor/django-formset.js" %}"></script>
+    <script src="{% static "js/vendor/jquery.datetimepicker.js" %}"></script>
 {% endblock jsincludes %}
 
 {% block js %}

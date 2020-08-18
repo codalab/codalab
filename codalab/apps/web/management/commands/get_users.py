@@ -8,4 +8,4 @@ class Command(BaseCommand):
         # Print out users.
         User = get_user_model()
         for x in User.objects.all():
-            print '\t'.join(map(str, [x.id, x.username, x.email, x.date_joined, x.last_login]))
+            print('\t'.join(map(str, [x.id, x.username, x.email, x.date_joined, x.last_login])))

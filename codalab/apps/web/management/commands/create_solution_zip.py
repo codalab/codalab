@@ -4,8 +4,6 @@ import requests
 import shutil
 import tempfile
 
-from optparse import make_option
-
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
@@ -14,27 +12,26 @@ User = get_user_model()
 class Command(BaseCommand):
     help = """Creates a fake solution zip file for easy uploading and testing. \n This is made to work in tandem with create_competition_zip"""
 
-    option_list = BaseCommand.option_list + (
-        make_option('--delete', '-d',
+    def add_arguments(self, parser):
+        parser.add_argument('--delete', '-d',
                     dest='delete',
                     action="store_true",
                     default=True,
                     help="Don't delete the temp files"
                     ),
-        make_option('--wrong', '-w',
+        parser.add_argument('--wrong', '-w',
                     dest='wrong',
                     action="store_true",
                     default=False,
                     help="Create wrong submission"
                     )
-    )
 
     def handle(self, *args, **options):
-        print " ----- "
-        print "Creating a solution zip in project root. The solution is based on the hello world example"
-        print "https://github.com/Tivix/competition-examples/tree/master/hello_world/submission"
-        print "this command is mainly used quick dev test"
-        print " ----- "
+        print(" ----- ")
+        print("Creating a solution zip in project root. The solution is based on the hello world example")
+        print("https://github.com/Tivix/competition-examples/tree/master/hello_world/submission")
+        print("this command is mainly used quick dev test")
+        print(" ----- ")
 
         #please set these to whatever defaults you would like to load
         answer_txt_url = "https://raw.githubusercontent.com/Tivix/competition-examples/master/hello_world/submission/answer.txt"
@@ -75,7 +72,7 @@ class Command(BaseCommand):
             root_dir=root_dir,
         )
 
-        print "sample solution complete"
+        print("sample solution complete")
 
         if temp_dir is not None and delete:
             # Try cleaning-up temporary directory
@@ -83,5 +80,5 @@ class Command(BaseCommand):
                 os.chdir(PROJECT_ROOT)
                 shutil.rmtree(temp_dir)
             except:
-                print "there was a problem cleaning up the temp folder."
-                print temp_dir
+                print("there was a problem cleaning up the temp folder.")
+                print(temp_dir)

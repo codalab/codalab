@@ -87,7 +87,8 @@ class ChaHubSaveMixin(models.Model):
             if is_valid and self.chahub_needs_retry and not force_to_chahub:
                 logger.info("ChaHub :: This has already been tried, waiting for do_retries to force resending")
             elif is_valid:
-                data = json.dumps(self.get_chahub_data())
+                # Encoded to utf-8 so we can hash it. (Py3)
+                data = json.dumps(self.get_chahub_data()).encode('utf-8')
                 data_hash = hashlib.md5(data).hexdigest()
 
                 # Send to chahub if we haven't yet, we have new data

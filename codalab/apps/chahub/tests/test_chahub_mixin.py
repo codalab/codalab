@@ -1,13 +1,11 @@
 import datetime
 import mock
-from django.conf import settings
-from django.http.response import HttpResponseBase
-from django.test import TestCase
-# from django.test.utils import override_settings
-
 from apps.authenz.models import ClUser
 from apps.web.models import CompetitionSubmission, Competition, CompetitionPhase, CompetitionParticipant, \
     ParticipantStatus
+from django.conf import settings
+from django.http.response import HttpResponseBase
+from django.test import TestCase
 
 
 class ChahubMixinTests(TestCase):

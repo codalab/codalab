@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% load url from future %}
+{% load static %}
 
 {% block page_title %}Forums{% endblock page_title %}
 
 {% block extra_headers %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}forums/forums.css">
+    <link rel="stylesheet" href="{% static "forums/forums.css" %}">
 {% endblock extra_headers %}
 
 {% block content_wrapper %}
