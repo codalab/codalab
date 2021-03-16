@@ -93,7 +93,7 @@ class AzureStorage(Storage):
     def size(self, name):
         return self.properties(name)["content-length"]
 
-    def get_available_name(self, name):
+    def get_available_name(self, name, max_length=None):
         dir_path, file_name = os.path.split(name)
         name = clean_name(name)
         try:
@@ -123,7 +123,7 @@ class AzureBlockBlobFile(RawIOBase):
                 if 'a' not in mode:
                     raise Exception("File Already Exists.")
             except azure.WindowsAzureMissingResourceError as e:
-                res = self.connection.put_blob(self.container, self.name, '', "BlockBlob")
+                res = self.connection.put_blob(self.container, self.name, b'', "BlockBlob")
         self._cur = 0
         self._end = (int(self.properties['content-length']) - 1) if int(self.properties['content-length']) > 0 else 0
         self._block_list = []

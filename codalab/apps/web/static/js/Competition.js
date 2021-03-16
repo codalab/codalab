@@ -319,7 +319,7 @@ var Competition;
             $('#fileUploadButton').removeClass('disabled');
             //$('#fileUploadButton').text("Submit Results...");
             $('#user_results #' + response.id + ' .glyphicon-plus').click();
-        }).error(function(jqXHR) {
+        }).fail(function(jqXHR) {
             var msg = 'An unexpected error occurred.';
             if (jqXHR.status == 403) {
                 msg = jqXHR.responseJSON.detail;
@@ -437,7 +437,7 @@ var Competition;
                 var isPublic = data == 'True' ? 'private' : 'public';
                 linkElement.html('Make your submission ' + isPublic);
             })
-            .error(function() {
+            .fail(function() {
                 alert('Error making submission public, is your Internet connection working?');
             });
 
@@ -464,7 +464,7 @@ var Competition;
                 $(element).parent().find('.update_description_btn').removeClass('hide').show();
                 $(element).hide();
             })
-            .error(function() {
+            .fail(function() {
                 alert('Error updating description, is your Internet connection working?');
             });
     };
@@ -697,7 +697,7 @@ var Competition;
                         $(competition_actions).children('#competition-delete-button').hide();
                         $(competition_actions).children('#competition-unpublish-button').show();
                     },
-                    error: function(jsXHR, textStatus, errorThrown) {
+                    fail: function(jsXHR, textStatus, errorThrown) {
                         var data = $.parseJSON(jsXHR.responseJSON);
                         if (data.error) {
                             alert(data.error);
