@@ -64,6 +64,7 @@ class CompetitionSubmissionListSerializer(serializers.ModelSerializer):
     can_be_migrated = serializers.SerializerMethodField('get_can_be_migrated')
     participant_submission_number = serializers.CharField(read_only=True)
     phase_number = serializers.IntegerField(source='phase.phasenumber')
+    size = serializers.SerializerMethodField('get_size')
 
     class Meta:
         model = webmodels.CompetitionSubmission
@@ -80,6 +81,7 @@ class CompetitionSubmissionListSerializer(serializers.ModelSerializer):
             'filename',
             'username',
             'is_migrated',
+            'size',
 
             # Is it possible to migrate this to the next phase?
             'can_be_migrated',
@@ -90,6 +92,9 @@ class CompetitionSubmissionListSerializer(serializers.ModelSerializer):
 
     def get_can_be_migrated(self, instance):
         return instance.id in self.context['migratable_submissions']
+
+    def get_size(self, instance):
+        return instance.size
 
 
 class PhaseSerial(serializers.ModelSerializer):

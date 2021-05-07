@@ -32,24 +32,30 @@
                     <div class="col-sm-12 kill-newlines">
                         <div class="my-datasets">
                             <a href="{% url 'my_datasets_create' %}" class="button btn btn-primary">Create Dataset</a>
-                            <table class="table table-striped table-bordered">
+                            <table class="table table-bordered">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
                                         <th>Key</th>
                                         <th>Description</th>
                                         <th>Type</th>
-                                        <th width="180">Actions</th>
-                                        <th width="100">Multi-delete? <span class="label label-danger">(unsafe!)</span></th>
+                                        <th>Size)</th>
+                                        <th width="160">Actions</th>
+                                        <th width="60">Select</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for dataset in object_list %}
-                                        <tr>
+                                        {% if dataset.is_in_use %}
+                                            <tr>
+                                        {% else %}
+                                            <tr class="failed-submission">
+                                        {% endif %}
                                             <td>{{ dataset.name }}</td>
                                             <td>{{ dataset.key }}</td>
                                             <td>{{ dataset.description }}</td>
                                             <td>{{ dataset.type }}</td>
+                                            <td>{{ dataset.size }} bytes</td>
                                             <td>
                                                 <a href="{% url 'datasets_download' dataset_key=dataset.key %}" class="button btn btn-default btn-sm">Download</a>
                                                 <a href="{% url 'my_datasets_delete' pk=dataset.pk %}" class="button btn btn-danger btn-sm delete">Delete</a>
@@ -69,6 +75,9 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="panel" align="center">
+                <i>Note: Orphaned (EG: un-used) datasets are displayed in red.</i>
             </div>
         </div>
     </div>

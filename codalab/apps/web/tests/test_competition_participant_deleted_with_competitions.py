@@ -27,8 +27,3 @@ class CompetitionParticipantDeletionCascade(TestCase):
         self.competition.delete()
         assert Competition.objects.count() == 0
         assert CompetitionParticipant.objects.count() == 0
-
-    def test_can_still_query_soft_deleted_objects(self):
-        self.competition.delete()
-        assert Competition.objects.get_all_objects().count() == 1
-        assert CompetitionParticipant.objects.get_all_objects().count() == 1

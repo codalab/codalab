@@ -1,22 +1,29 @@
-import csv
-import urllib
-from datetime import datetime, timedelta
-import json
-import math
-import os
 import StringIO
+import csv
+import json
+import os
 import sys
 import traceback
+import urllib
 import yaml
 import zipfile
-
-from decimal import Decimal
-
-from django.utils.safestring import mark_safe
-from django.views.generic.base import ContextMixin
-from yaml.representer import SafeRepresenter
-
-from django.db import connection
+from apps.authenz.models import ClUser
+from apps.common.competition_utils import get_most_popular_competitions, get_featured_competitions
+from apps.coopetitions.models import Like, Dislike
+from apps.customizer.models import Configuration
+from apps.forums.models import Forum
+from apps.health.models import HealthSettings
+from apps.jobs.models import Job
+from apps.teams.forms import OrganizerTeamsCSVForm
+from apps.teams.models import Team, get_user_team, get_competition_pending_teams, get_last_team_submissions, \
+    get_user_requests, get_team_pending_membership
+from apps.web import forms
+from apps.web import models
+from apps.web import tasks
+from apps.web.forms import CompetitionS3UploadForm
+from apps.web.models import SubmissionScore, SubmissionScoreDef, get_current_phase, \
+    get_first_previous_active_and_next_phases, Competition, CompetitionSubmission
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -26,47 +33,22 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core.servers.basehttp import FileWrapper
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
+from django.db import connection
 from django.db.models import Q, Max, Min, Count
 from django.http import Http404, HttpResponseForbidden
 from django.http import HttpResponse, HttpResponseRedirect
-from django.http import StreamingHttpResponse
-from django.shortcuts import render_to_response, render, redirect, get_object_or_404
+from django.shortcuts import render_to_response, render, get_object_or_404
 from django.template import RequestContext, loader
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
+from django.utils.safestring import mark_safe
 from django.views.generic import FormView
 from django.views.generic import View, TemplateView, DetailView, ListView, UpdateView, CreateView, DeleteView
-from django.utils.html import strip_tags
-from django.utils import timezone
-
-
-from mimetypes import MimeTypes
-
-from apps.teams.forms import OrganizerTeamsCSVForm
-from apps.jobs.models import Job
-from apps.health.models import HealthSettings
-from apps.web import forms
-from apps.web import models
-from apps.web import tasks
-from apps.coopetitions.models import Like, Dislike
-from apps.forums.models import Forum
-from apps.common.competition_utils import get_most_popular_competitions, get_featured_competitions
-from apps.web.exceptions import ScoringException
-from apps.web.forms import CompetitionS3UploadForm, SubmissionS3UploadForm
-from apps.web.models import SubmissionScore, SubmissionScoreDef, get_current_phase, \
-    get_first_previous_active_and_next_phases, Competition, CompetitionSubmission
-
-from apps.authenz.models import ClUser
-from apps.customizer.models import Configuration
+from extra_views import UpdateWithInlinesView, InlineFormSet, NamedFormsetsMixin
 from tasks import evaluate_submission, re_run_all_submissions_in_phase, create_competition, _make_url_sassy, \
     make_modified_bundle
-from apps.teams.models import Team, TeamMembership, get_user_team, get_competition_teams, get_competition_pending_teams, get_competition_deleted_teams, get_last_team_submissions, get_user_requests, get_team_pending_membership
-
-from extra_views import UpdateWithInlinesView, InlineFormSet, NamedFormsetsMixin
-
-from .utils import check_bad_scores
 
 try:
     import azure
@@ -724,10 +706,17 @@ class CompetitionSubmissionsPage(LoginRequiredMixin, TemplateView):
                         'organization_or_affiliation': submission.organization_or_affiliation,
                         'is_public': submission.is_public,
                         'score': default_score,
+                        'size': submission.size,
                     }
                     submission_info_list.append(submission_info)
                 context['submission_info_list'] = submission_info_list
                 context['phase'] = phase
+                # Convert from bytes to megabytes
+                part_used_storage = float(participant.get_storage_use()) / 1000 / 1000
+                part_storage_left = float(phase.participant_max_storage_use) - part_used_storage
+                context['participant_use'] = '{:.2f}'.format(part_used_storage)
+                context['participant_use_left'] = '{:.2f}'.format(part_storage_left)
+                context['max_part_storage_use'] = phase.participant_max_storage_use
 
         try:
             last_submission = models.CompetitionSubmission.objects.filter(

@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+{% load codalab_tags %}
+
+{% block head_title %}Storage Analytics{% endblock head_title %}
+{% block page_title %}Storage Analytics{% endblock page_title %}
+
+
+{% block extra_headers %}
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    {% verbatim %}
+        <h4>Total Storage Usage</h4>
+        <div id="storage-total-app">
+            <table class="table table-responsive">
+                <tbody>
+                <tr>
+                    <td>Total in bytes:</td>
+                    <td>{{ storage_analytics_data.total_bytes }}</td>
+                <tr>
+                <tr>
+                    <td>Total in kilobytes:</td>
+                    <td>{{ storage_analytics_data.total_kilobytes }}</td>
+                <tr>
+                <tr>
+                    <td>Total in megabytes:</td>
+                    <td>{{ storage_analytics_data.total_megabytes }}</td>
+                <tr>
+                <tr>
+                    <td>Total in gigabytes:</td>
+                    <td>{{ storage_analytics_data.total_gigabytes }}</td>
+                <tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="storage-timeline-app">
+            <v-app id="inspire">
+                <v-card
+                        class="mx-auto text-xs-center"
+                        color="blue"
+                        dark
+                        max-width="1400"
+                        :loading="loading"
+                >
+                    <template slot="progress">
+                        <v-progress-linear
+                                color="deep-purple"
+                                height="20"
+                                indeterminate
+                        ></v-progress-linear>
+                    </template>
+                    <v-card-text>
+                        <div class="display-1 font-weight-thin">Storage use over time</div>
+                    </v-card-text>
+                    <v-card-text>
+                        <v-sheet color="rgba(0, 0, 0, .12)" height="400" width="1100">
+                            <v-sparkline
+                                    label-size="14"
+                                    :labels="storage_labels"
+                                    :value="storage_totals"
+                                    color="rgba(255, 255, 255, .7)"
+                                    height="300"
+                                    width="1000"
+                                    padding="96"
+                                    stroke-linecap="round"
+                                    smooth
+                            >
+                                <template
+                                        slot="label"
+                                        slot-scope="item"
+                                >
+                                    {{ item.value }}: {{ storage_totals[item.index] }}
+                                </template>
+                            </v-sparkline>
+                        </v-sheet>
+                    </v-card-text>
+                </v-card>
+                <template>
+                    <v-container fluid>
+                        <v-row align="center">
+                            <v-col cols="3">
+                                <v-subheader>
+                                    Units
+                                </v-subheader>
+                            </v-col>
+
+                            <v-col cols="3">
+                                <v-select
+                                        v-model="select"
+                                        :hint="`${select.value}`"
+                                        :items="unit_selections"
+                                        :loading="loading"
+                                        item-text="unit"
+                                        item-value="value"
+                                        label="Select"
+                                        @change="set_unit(select.value)"
+                                        persistent-hint
+                                        return-object
+                                        single-line
+                                ></v-select>
+                            </v-col>
+                            <v-col cols="3">
+                                <v-subheader>
+                                    Date Range (Sample points)
+                                </v-subheader>
+                            </v-col>
+
+                            <v-col cols="3">
+                                <v-slider
+                                        v-model="date_range.val"
+                                        max="45"
+                                        min="2"
+                                        :loading="loading"
+                                        :color="date_range.color"
+                                        :label="`${date_range.val}`"
+                                        @end="set_date_range(date_range.val)"
+                                ></v-slider>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </template>
+            </v-app>
+        </div>
+        <h4>Competition Storage Analytics</h4>
+        <div id="storage-competitions-app">
+            <v-data-table
+                    :headers="headers"
+                    :items="comp_list"
+                    :items-per-page="50"
+                    :footer-props="footer_properties"
+                    :loading="loading"
+                    multi-sort
+            >
+            </v-data-table>
+        </div>
+        <h4>User Storage Analytics</h4>
+        <i>Note: User competition usage will include all above analytics for competitions. (Including user's own
+            submissions). Dataset usage represents those not tied to a competition, and Submission usage represent those
+            not in the user's own competition.</i>
+        <div id="storage-users-app">
+            <v-data-table
+                    :headers="headers"
+                    :items="user_list"
+                    :items-per-page="25"
+                    :footer-props="footer_properties"
+                    :loading="loading"
+                    multi-sort
+            >
+            </v-data-table>
+        </div>
+    {% endverbatim %}
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vuetify/2.3.0-beta.6/vuetify.js"></script>
+    <script>
+        $(document).ready(function () {
+            new Vue({
+                el: '#storage-total-app',
+                vuetify: new Vuetify(),
+                data: function () {
+                    return {
+                        storage_analytics_data: {
+                            total_bytes: 'Loading!',
+                            total_megabytes: 'Loading!',
+                            total_kilobytes: 'Loading!',
+                            total_gigabytes: 'Loading!'
+                        }
+                    }
+                },
+                computed: {},
+                mounted: function () {
+                    this.get_storage_analytics()
+                },
+                methods: {
+                    async get_storage_analytics()
+            {
+                try {
+                    this.storage_analytics_data = await $.get(`/api/storage/get_total_analytics`)
+                } catch (e) {
+                    console.log(e)
+                    console.log(e.response)
+                }
+            }
+        ,
+        }
+        })
+            new Vue({
+                el: '#storage-competitions-app',
+                vuetify: new Vuetify(),
+                data: function () {
+                    return {
+                        loading: true,
+                        comp_list: [],
+                        headers: [
+                            {text: 'ID', value: 'id'},
+                            {text: 'Title', value: 'title'},
+                            {text: 'Creator', value: 'creator'},
+                            {text: 'Is Active', value: 'is_active'},
+                            {text: 'Dataset Usage (bytes)', value: 'datasets'},
+                            {text: 'Submission Usage (bytes)', value: 'submissions'},
+                            {text: 'Bundle Usage (bytes)', value: 'bundle'},
+                            {text: 'Dumps Usage (bytes)', value: 'dumps'},
+                            {text: 'Total Usage (bytes)', value: 'total'},
+                        ],
+                        footer_properties: {
+                            'items-per-page-options': [25, 50, 100, -1],
+                        },
+                    }
+                },
+                computed: {},
+                mounted: function () {
+                    this.get_comp_storage_analytics()
+                },
+                methods: {
+                    async get_comp_storage_analytics()
+            {
+                try {
+                    this.comp_list = await $.get(`/api/storage/get_competition_analytics`)
+                    this.loading = false
+                } catch (e) {
+                    console.log(e)
+                    console.log(e.response)
+                    this.loading = false
+                }
+            }
+        ,
+        }
+        })
+            new Vue({
+                el: '#storage-users-app',
+                vuetify: new Vuetify(),
+                data: function () {
+                    return {
+                        loading: true,
+                        user_list: [],
+                        headers: [
+                            {text: 'ID', value: 'id'},
+                            {text: 'Username', value: 'username'},
+                            {text: 'Email', value: 'email'},
+                            {text: 'Competitions Usage (bytes)', value: 'competitions_total'},
+                            {text: 'Dataset Usage (bytes)', value: 'datasets_total'},
+                            {text: 'Submission Usage (bytes)', value: 'submissions_total'},
+                            {text: 'Total Usage (bytes)', value: 'total'},
+                        ],
+                        footer_properties: {
+                            'items-per-page-options': [25, 50, 100, -1],
+                        },
+                    }
+                },
+                computed: {},
+                mounted: function () {
+                    this.get_user_storage_analytics()
+                },
+                methods: {
+                    async get_user_storage_analytics()
+            {
+                try {
+                    this.user_list = await
+                    $.get(`/api/storage/get_user_analytics`)
+                    this.loading = false
+                } catch (e) {
+                    console.log(e)
+                    console.log(e.response)
+                    this.loading = false
+                }
+            }
+        ,
+        }
+        })
+            new Vue({
+                el: '#storage-timeline-app',
+                vuetify: new Vuetify(),
+                data: function () {
+                    return {
+                        loading: true,
+                        unit: 'years',
+                        sample_points: 5,
+                        data_list: [],
+                        storage_totals: [],
+                        storage_labels: [],
+                        // Sparkline
+                        width: 2,
+                        radius: 10,
+                        padding: 8,
+                        lineCap: 'round',
+                        fill: false,
+                        type: 'trend',
+                        autoLineWidth: false,
+                        // Inputs
+                        select: {unit: 'Years', value: 'years'},
+                        unit_selections: [
+                            {unit: 'Hours', value: 'hours'},
+                            {unit: 'Days', value: 'days'},
+                            {unit: 'Weeks', value: 'weeks'},
+                            {unit: 'Months', value: 'months'},
+                            {unit: 'Years', value: 'years'},
+                        ],
+                        date_range: { label: 'Date Range', val: 5, color: 'orange darken-3' },
+                    }
+                },
+                computed: {},
+                mounted: function () {
+                    this.get_storage_timeline_analytics()
+                },
+                methods: {
+                    async get_storage_timeline_analytics() {
+                        try {
+                            this.data_list = await $.get(`/api/storage/get_analytics_overtime?unit=${this.unit}&sample_points=${this.sample_points}`)
+                            var storage_totals = []
+                            var storage_labels = []
+                            $.each(this.data_list, function (index, data_point) {
+                                // Should have a dict/obj here
+                                $.each(data_point, function (date, total) {
+                                    storage_totals.push(total)
+                                    storage_labels.push(date)
+                                });
+                            });
+                            this.storage_totals = storage_totals
+                            this.storage_labels = storage_labels
+                            this.loading = false
+                        } catch (e) {
+                            console.log(e)
+                            console.log(e.response)
+                            this.loading = false
+                        }
+                    },
+                    set_date_range(value) {
+                        this.loading = true
+                        this.sample_points = value
+                        this.get_storage_timeline_analytics()
+                    },
+                    set_unit(value) {
+                        this.loading = true
+                        this.unit = value
+                        this.get_storage_timeline_analytics()
+                    },
+                }
+            })
+        })
+    </script>
+{% endblock %}

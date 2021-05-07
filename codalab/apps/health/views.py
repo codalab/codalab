@@ -1,15 +1,12 @@
+from apps.health.models import HealthSettings
+from apps.jobs.models import Job
+from apps.web.models import CompetitionSubmission
 from datetime import datetime, timedelta
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.utils.timezone import now
-
-from apps.web.models import CompetitionSubmission
-from .models import HealthSettings
-from apps.jobs.models import Job
 
 
 def get_health_metrics():
@@ -122,6 +119,13 @@ def simple_health(request):
     return render(request, "health/simple_health.html", {
         "submissions": qs[:500],
     })
+
+
+@login_required
+def storage_analytics(request):
+    if not request.user.is_staff:
+        return HttpResponse(status=403)
+    return render(request, "health/storage.html")
 
 
 @login_required

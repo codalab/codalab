@@ -394,7 +394,8 @@ var Competition;
                     var s = fmt(dt.getSeconds());
                     $(this).html(d + ' ' + h + ':' + m + ':' + s);
                     break;
-                case 5: $(this).html(Competition.getSubmissionStatus(response.status)); break;
+                // Push this over one now that we added size to the table
+                case 6: $(this).html(Competition.getSubmissionStatus(response.status)); break;
             }
         }
       );

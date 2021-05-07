@@ -23,6 +23,12 @@
 
         <p><b>Max submissions per day: </b> {{ phase.max_submissions_per_day }}</p>
         <p><b>Max submissions total: </b> {{ phase.max_submissions }}</p>
+        {% if phase.participant_max_storage_use > 0 %}
+            <p><b>Remaining Storage Use: </b>{{ participant_use_left }} megabyte(s) out of {{ max_part_storage_use}} megabyte(s) remaining. {{ participant_use }} megabyte(s) used</p>
+        {% endif %}
+        {% if phase.max_submission_size > 0 %}
+            <p><b>Max Submission Size: </b> {{ phase.max_submission_size }} megabyte(s)</p>
+        {% endif %}
     </div>
 
     {% if submission_threshold_met %}
@@ -101,6 +107,7 @@
                     {% endif %}
                     <th>Filename</th>
                     <th>Submission date</th>
+                    <th>Size (bytes)</th>
                     <th>Status</th>
                     <th class="text-center"><span class="glyphicon glyphicon-ok"></span></th>
                 </tr>
@@ -137,6 +144,7 @@
                             {% endif %}
                             <td>{{ submission_info.filename }}</td>
                             <td>{{ submission_info.submitted_at|date:"m/d/Y H:i:s" }}</td>
+                            <td>{{ submission_info.size }}</td>
                             <td class="statusName">{{ submission_info.status_name }}</td>
                             {% if submission_info.is_in_leaderboard %}
                                 <td class="status submitted text-center"><span

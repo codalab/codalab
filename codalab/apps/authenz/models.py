@@ -3,6 +3,8 @@ from django.contrib.auth import models as auth_models
 
 from apps.chahub.models import ChaHubSaveMixin
 from apps.newsletter.models import NewsletterSubscription
+from apps.web.utils import get_competition_size_data
+from apps.web.models import OrganizerDataSet, CompetitionSubmission
 
 
 class ClUser(ChaHubSaveMixin, auth_models.AbstractUser):
@@ -69,5 +71,30 @@ class ClUser(ChaHubSaveMixin, auth_models.AbstractUser):
 
         super(ClUser, self).save(*args, **kwargs)
 
+    def get_storage_use_data(self):
+        data = {
+            'id': self.id,
+            'email': self.email,
+            'username': self.username,
+            'competitions': [],
+            'competitions_total': 0,
+            'datasets_total': 0,
+            'submissions_total': 0,
+            'total': 0,
+        }
+        for competition in self.competitioninfo_creator.all():
+            comp_data = get_competition_size_data(competition)
+            data['competitions'].append(comp_data)
+            data['competitions_total'] += comp_data['total']
+        data['total'] += data['competitions_total']
+        # All datasets not in use, because used ones are already accounted for in competition size
+        for dataset in [dataset for dataset in OrganizerDataSet.objects.filter(uploaded_by=self) if not dataset.is_in_use]:
+            data['datasets_total'] += dataset.size
+        data['total'] += data['datasets_total']
+        # All submissions not already included in our competition statistics
+        for submission in CompetitionSubmission.objects.filter(participant__user=self).exclude(phase__competition__creator=self):
+            data['submissions_total'] += submission.size
+        data['total'] += data['submissions_total']
+        return data
 
 ClUser._meta.get_field('username').db_index = True

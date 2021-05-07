@@ -10,7 +10,7 @@ class Forum(models.Model):
     """
     Base Forum model.
     """
-    competition = models.OneToOneField('web.Competition', unique=True, related_name="forum")
+    competition = models.OneToOneField('web.Competition', unique=True, related_name="forum", on_delete=models.CASCADE)
 
     def get_absolute_url(self):
         return reverse('forum_detail', kwargs={'forum_pk': self.pk})
@@ -26,9 +26,9 @@ class Thread(models.Model):
     """
     Base Thread Model. Allows user to keep track of a new post.
     """
-    forum = models.ForeignKey('forums.Forum', related_name="threads")
+    forum = models.ForeignKey('forums.Forum', related_name="threads", on_delete=models.CASCADE)
     date_created = models.DateTimeField()
-    started_by = models.ForeignKey('authenz.ClUser')
+    started_by = models.ForeignKey('authenz.ClUser', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     last_post_date = models.DateTimeField(null=True, blank=True)
     pinned_date = models.DateTimeField(null=True, blank=True)
@@ -82,9 +82,9 @@ class Post(models.Model):
     """
     Base Post model. Allows an authenticated user to post on a forum Thread.
     """
-    thread = models.ForeignKey('forums.Thread', related_name="posts")
+    thread = models.ForeignKey('forums.Thread', related_name="posts", on_delete=models.CASCADE)
     date_created = models.DateTimeField()
-    posted_by = models.ForeignKey('authenz.ClUser')
+    posted_by = models.ForeignKey('authenz.ClUser', on_delete=models.CASCADE)
     content = models.TextField()
 
     def save(self, *args, **kwargs):
