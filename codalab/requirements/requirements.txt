@@ -45,7 +45,7 @@ pylibmc==1.5.2
 celery==4.4.6
 boto3==1.14.22
 # We need a modified s3direct 0.4.1 which can use AWS_S3_HOST instead of forcing aws
-git+https://github.com/codalab/django-s3direct.git@feature/allow-different-endpoint
+git+https://github.com/codalab/django-s3direct.git@chromeFix
 
 #pyrabbit==1.1.0
 git+https://github.com/bkjones/pyrabbit.git@e8a9f74ed5c6bba958994fb9a72c396e6a99ea0f
