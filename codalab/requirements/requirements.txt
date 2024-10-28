@@ -42,7 +42,7 @@ django-bootstrap-form==3.4
 newrelic==2.54.0.41
 pylibmc==1.5.2
 
-celery==4.4.6
+celery==5.4.0
 boto3==1.14.22
 # We need a modified s3direct 0.4.1 which can use AWS_S3_HOST instead of forcing aws
 git+https://github.com/codalab/django-s3direct.git@chromeFix
