@@ -29,6 +29,11 @@ python scripts/initialize_from_fixture.py
 
 python manage.py loaddata initial_data.json initialize_site.json initial_team_data.json
 
+# Django needs to remove http proxy variables for working
+unset HTTP_PROXY
+unset HTTPS_PROXY
+unset NO_PROXY
+
 # start development server on public ip interface, on port 8000
 PYTHONUNBUFFERED=TRUE gunicorn codalab.wsgi \
     --bind django:$DJANGO_PORT \

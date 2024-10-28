@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   # --------------------------------------------------------------------------
   # HTTP Server
@@ -58,6 +58,7 @@ services:
     environment:
       - RABBITMQ_LOGS=/var/log/rabbitmq/output.log
       - RABBITMQ_SASL_LOGS=/var/log/rabbitmq/output_sasl.log
+      - WORKER_CONNECTION_TIMEOUT="${WORKER_CONNECTION_TIMEOUT:-100000000}"
     env_file: .env
     volumes:
       - ./docker:/app/docker
