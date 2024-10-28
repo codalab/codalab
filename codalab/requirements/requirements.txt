@@ -1,3 +1,4 @@
+setuptools==58.0.0
 Django==1.11.29
 alembic==0.6.7
 argparse
