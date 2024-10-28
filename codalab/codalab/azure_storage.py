@@ -12,6 +12,9 @@ from django.core.files.storage import Storage
 from django.core.exceptions import ImproperlyConfigured
 from io import RawIOBase
 
+# https://docs.djangoproject.com/en/1.11/topics/migrations/#migration-serializing
+from django.utils.deconstruct import deconstructible
+
 # keep consistent path separators
 pathjoin = lambda *args: os.path.join(*args).replace("\\", "/")
 
@@ -38,7 +41,7 @@ from storages.utils import setting
 def clean_name(name):
     return os.path.normpath(name).replace("\\", "/")
 
-
+@deconstructible
 class AzureStorage(Storage):
     chunk_size = 65536
 
@@ -48,6 +51,9 @@ class AzureStorage(Storage):
         self.azure_container = kwargs.pop('azure_container', setting("AZURE_CONTAINER"))
         super(AzureStorage, self).__init__(*args, **kwargs)
         self._connection = None
+
+    def __eq__(self, other):
+        return self.foo == other.foo
 
     @property
     def connection(self):

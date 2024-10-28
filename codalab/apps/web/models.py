@@ -2747,3 +2747,21 @@ class CompetitionDump(models.Model):
 def competitiondump_post_delete_handler(sender, **kwargs):
     comp_dump = kwargs['instance']
     delete_key_from_storage(comp_dump, 'data_file')
+
+class NewsPost(models.Model):
+    """
+    News section on /highlights page
+
+    Attributes or columns include:
+        * Title
+    """
+    title = models.CharField(max_length=40, unique=True)
+    link = models.URLField(max_length=200)
+    date = models.DateTimeField(null=True, blank=True, verbose_name="Post Date (UTC)")
+    post = models.TextField(null=True, blank=True)
+    
+    def __unicode__(self):
+        return self.title
+
+    def __str__(self):
+        return self.title

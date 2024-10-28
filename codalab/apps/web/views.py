@@ -26,7 +26,7 @@ from apps.web import models
 from apps.web import tasks
 from apps.web.exceptions import ScoringException
 from apps.web.forms import CompetitionS3UploadForm
-from apps.web.models import SubmissionScore, SubmissionScoreDef, get_current_phase, \
+from apps.web.models import NewsPost, SubmissionScore, SubmissionScoreDef, get_current_phase, \
     get_first_previous_active_and_next_phases, Competition, CompetitionSubmission
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -142,15 +142,15 @@ class Highlights(TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         
-        data = Competition.objects.aggregate(
+        comp = Competition.objects.aggregate(
             count=Count('*'),
             published_comps=Count(Case(When(published=True, then=1))),
             unpublished_comps=Count(Case(When(published=False, then=1)))
         )
-                    
-        total_competitions = data['count']
-        public_competitions = data['published_comps']
-        private_competitions = data['unpublished_comps']
+               
+        total_competitions = comp['count']
+        public_competitions = comp['published_comps']
+        private_competitions = comp['unpublished_comps']
         users = User.objects.all().count() # from authenz_cluser
         competition_participants = models.CompetitionParticipant.objects.all().count()
         submissions = models.CompetitionSubmission.objects.all().count()
@@ -163,6 +163,18 @@ class Highlights(TemplateView):
             {'label': "Competition Participants", 'count': competition_participants},
             {'label': "Submissions", 'count': submissions},
         ]
+        
+        news_list = []
+        try:
+            news = NewsPost.objects.all()
+            for news_component in news:
+                nc = {'title':news_component.title,'link':news_component.link,'date':news_component.date,'post':news_component.post}
+                news_list.append(nc)
+        except:
+            logger.info("No new news")
+
+        context['news'] = news_list
+        
         
         return context
 

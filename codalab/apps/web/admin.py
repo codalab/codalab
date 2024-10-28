@@ -81,3 +81,5 @@ admin.site.register(models.OrganizerDataSet)
 admin.site.register(models.CompetitionSubmission)
 admin.site.register(models.CompetitionSubmissionMetadata)
 admin.site.register(models.CompetitionDefBundle)
+
+admin.site.register(models.NewsPost)

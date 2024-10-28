@@ -393,6 +393,15 @@
                         <div class="row">
                             <h1 class="ui purple header">News</h1>
                         </div>
+                            <!-- Additional News -->
+                            {% for news_component in news %}
+                            <div class="row news-column-bottom-padding">
+                                <h3><a href="{{ news_component.link }}">{{ news_component.title }}</a><br>
+                                </h3>
+                                <p><u>{{ news_component.date|date:'F Y' }}</u>: {{ news_component.post|safe }}
+                                </p>
+                            </div>
+                            {% endfor %}
                             <div class="row news-column-bottom-padding">
                             <h3><a href="https://codalab.lisn.upsaclay.fr/">New
                                 server</a><br>
