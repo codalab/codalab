@@ -47,8 +47,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, render, get_object_or_404, redirect
 from django.template import RequestContext
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic import View, TemplateView, DetailView, ListView, UpdateView, CreateView, DeleteView
 from extra_views import UpdateWithInlinesView, InlineFormSet, NamedFormsetsMixin
@@ -2150,6 +2152,10 @@ class CompetitionSubmissionWidgetView(WidgetMixin, DetailView):
     queryset = models.Competition.objects.all()
     template_name = 'web/widget_iframes/submission.html'
 
+    @method_decorator(xframe_options_exempt)
+    def get(self, request, *args, **kwargs):
+        return super(CompetitionSubmissionWidgetView, self).get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(CompetitionSubmissionWidgetView, self).get_context_data(**kwargs)
         context['phase'] = get_current_phase(self.object)
@@ -2227,6 +2233,10 @@ class CompetitionSubmissionWidgetView(WidgetMixin, DetailView):
 class CompetitionLeaderboardWidgetView(WidgetMixin, DetailView):
     queryset = models.Competition.objects.all()
     template_name = 'web/widget_iframes/leaderboard.html'
+
+    @method_decorator(xframe_options_exempt)
+    def get(self, request, *args, **kwargs):
+        return super(CompetitionLeaderboardWidgetView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(CompetitionLeaderboardWidgetView, self).get_context_data(**kwargs)
