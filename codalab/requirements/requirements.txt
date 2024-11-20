@@ -30,7 +30,7 @@ psutil==5.7.2
 python-openid==2.2.5
 python-ptrace==0.6.5
 pytz==2015.7
-PyYAML==5.1
+PyYAML==6.0.1
 requests-oauthlib==0.3.2
 requests==2.24.0
 six==1.10.0
