@@ -496,6 +496,10 @@ class Base(Configuration):
             'task': 'apps.web.tasks.create_storage_analytics_snapshot',
             'schedule': crontab(hour=2, minute=0, day_of_week='sun') # Every Sunday at 02:00
         },
+        'reset_computed_storage_analytics': {
+            'task': 'apps.web.tasks.reset_computed_storage_analytics',
+            'schedule': crontab(minute=0, hour=2, day_of_month=1, month_of_year="*/3") # Every 3 month at 02:00 on the 1st
+        }
     }
     CELERY_TIMEZONE = 'UTC'
 

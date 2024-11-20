@@ -966,6 +966,18 @@ def create_storage_analytics_snapshot():
 
 
 @task(queue='site-worker')
+def reset_computed_storage_analytics():
+    logger.info("Task reset_computed_storage_analytics started")
+    starting_time = time.process_time()
+
+    # Reset the value of all computed sizes so they will be re-computed again without any shifting on the next run of the storage analytics task
+    CompetitionSubmission.objects.all().update(sub_size=0)
+
+    elapsed_time = time.process_time() - starting_time
+    logger.info("Task reset_computed_storage_analytics stoped. Duration = {:.3f} seconds".format(elapsed_time))
+
+
+@task(queue='site-worker')
 def do_phase_migrations():
     competitions = Competition.objects.filter(is_migrating=False)
     logger.info("Checking {} competitions for phase migrations.".format(len(competitions)))
