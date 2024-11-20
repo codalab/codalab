@@ -1,4 +1,4 @@
-Django==1.11.29
+Django==3.2.24
 alembic==0.6.7
 argparse
 # azure==0.7.1
