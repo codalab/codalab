@@ -22,7 +22,7 @@ django-mptt==0.9.1
 django-nose==1.4.6
 django-oauth-toolkit==0.11.0
 django-storages==1.9.1
-django-tinymce==2.7.1
+django-tinymce==3.7.1
 djangorestframework==3.8.2
 mock==1.0.1
 oauthlib==1.1.2
