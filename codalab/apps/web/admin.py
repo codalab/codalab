@@ -14,10 +14,12 @@ class ParticipantInlineAdmin(admin.TabularInline):
     model = models.CompetitionParticipant
 
 class CompetitionAdmin(admin.ModelAdmin):
-    inlines = [
-               PhaseInlineAdmin,
-               ParticipantInlineAdmin
-               ]
+    #inlines = [
+               #PhaseInlineAdmin,
+               #ParticipantInlineAdmin
+               #]
+    search_fields = ['title', 'creator__username']
+    list_display = ['title', 'creator']
 admin.site.register(models.Competition, CompetitionAdmin)
 
 
