@@ -38,10 +38,13 @@ services:
       - ${DB_DATA_PATH}:/var/lib/postgresql/data
       - ./backups:/app/backups
     env_file: .env
+    ports:
+      - "5432:5432"
     logging:
       options:
         max-size: "200k"
     container_name: postgres
+
 
 
   # --------------------------------------------------------------------------

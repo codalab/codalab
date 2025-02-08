@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y npm netcat nodejs python-dev libmemcach
 
 RUN pip install --upgrade pip  # make things faster, hopefully
 COPY codalab/requirements/requirements.txt requirements.txt
+
+RUN pip install --upgrade "pip<24.1"
 RUN pip install -r requirements.txt
 
 WORKDIR /app/codalab

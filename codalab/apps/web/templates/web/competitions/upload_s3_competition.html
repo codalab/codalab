@@ -13,7 +13,7 @@
                    title="Get help with creating a competition" target="_blank">
                     <span class="glyphicon glyphicon-question-sign"></span>
                 </a>
-              </h4>
+              </h3>
             </div>
 
             <form id="s3_upload_form" action="" method="post">
@@ -39,9 +39,12 @@
           $("input[type='file']").click()
                 var test_if_done = function() {
                     var progress = $('a.file-link').attr('href') !== ""
+                    
                     if( progress ) {
+                        console.log(progress)
                         $("#s3_upload_form").submit()
                     } else {
+                        
                         setTimeout(test_if_done, 100)
                     }
                 }
@@ -50,10 +53,12 @@
 
         $("#s3_upload_form").submit(function(event) {
             event.preventDefault()
+            
             $.post(
                 '{% url 'competitions:s3_create_competition' %}',
                 $("#s3_upload_form").serialize()
             ).done(function(data) {
+                
                 var token = data.token
                 var wait_for_competition = function() {
                     $.ajax({
